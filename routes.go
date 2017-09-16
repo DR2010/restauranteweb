@@ -57,7 +57,6 @@ var routes = Routes{
 	Route{"login", "GET", "/login", loginPage},
 	Route{"signup", "GET", "/signup", signupPage},
 	Route{"dishlist", "GET", "/dishlist", dishlist},
-	Route{"orderlist", "GET", "/orderlist", orderlist},
 	Route{"dishadddisplay", "POST", "/dishadddisplay", dishadddisplay},
 	Route{"dishupdatedisplay", "POST", "/dishupdatedisplay", dishupdatedisplay},
 	Route{"dishdeletedisplay", "POST", "/dishdeletedisplay", dishdeletedisplay},
