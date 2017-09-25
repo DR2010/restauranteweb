@@ -17,8 +17,9 @@ func Logger(inner http.Handler, name string) http.Handler {
 		log.SetOutput(os.Stderr)
 
 		log.Printf(
-			"%s\t%s\t%s\t%s",
+			"%s\t%s\t%s\t%s\t%s",
 			r.Method,
+			r.Host,
 			r.RequestURI,
 			name,
 			time.Since(start),

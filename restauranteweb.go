@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	helper "mongodb/helper"
 	"net/http"
+	disheshandler "restauranteweb/areas/disheshandler"
+	helper "restauranteweb/areas/helper"
 
 	_ "github.com/go-sql-driver/mysql"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-var mongodbvar DatabaseX
+var mongodbvar helper.DatabaseX
 
 var db *sql.DB
 var err error
@@ -35,8 +36,12 @@ func main() {
 
 	mongodbvar.Location = "localhost"
 	mongodbvar.Database = "restaurante"
+	mongodbvar.APIServer = "http://localhost:1520/"
 
 	fmt.Println("Running... Listening to :1515 - print")
+	fmt.Println("MongoDB location: " + mongodbvar.Location)
+	fmt.Println("MongoDB database: " + mongodbvar.Database)
+	fmt.Println("API Server: " + mongodbvar.APIServer)
 
 	router := XNewRouter()
 
@@ -147,72 +152,20 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 }
 
 func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
-
-	type ControllerInfo struct {
-		Name string
-	}
-	type Row struct {
-		Description []string
-	}
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-	}
-
-	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
-
-	var items = DishGetAll()
-
-	t.Execute(httpwriter, items)
+	disheshandler.List(httpwriter, mongodbvar)
 }
 
 func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
-
-	type ControllerInfo struct {
-		Name string
-	}
-
-	type Row struct {
-		Description []string
-	}
-
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-	}
-
-	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishadd.html")
-
-	items := DisplayTemplate{}
-	items.Info.Name = "Dish Add"
-
-	t.Execute(httpwriter, items)
-	return
-
+	disheshandler.LoadDisplayForAdd(httpwriter)
 }
 
 func dishadd(httpwriter http.ResponseWriter, req *http.Request) {
 
-	dishtoadd := Dish{}
+	mongodbvar.Location = "localhost"
+	mongodbvar.Database = "restaurante"
+	mongodbvar.APIServer = "http://localhost:1520/"
 
-	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
-	dishtoadd.Type = req.FormValue("dishtype")
-	dishtoadd.Price = req.FormValue("dishprice")
-	dishtoadd.GlutenFree = req.FormValue("dishglutenfree")
-	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
-	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
-
-	ret := Dishadd(mongodbvar, dishtoadd)
-
-	if ret.IsSuccessful == "Y" {
-		// http.ServeFile(httpwriter, req, "success.html")
-		http.Redirect(httpwriter, req, "/dishlist", 301)
-		return
-	}
+	disheshandler.Add(httpwriter, req, mongodbvar)
 }
 
 func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -239,7 +192,7 @@ func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 		Info       ControllerInfo
 		FieldNames []string
 		Rows       []Row
-		DishItem   Dish
+		DishItem   disheshandler.Dish
 	}
 
 	// create new template
@@ -248,13 +201,13 @@ func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
 
-	items.DishItem = Dish{}
+	items.DishItem = disheshandler.Dish{}
 	items.DishItem.Name = dishselected[0]
 
-	var dishfind = Dish{}
+	var dishfind = disheshandler.Dish{}
 	var dishname = items.DishItem.Name
 
-	dishfind = Find(mongodbvar, dishname)
+	dishfind = disheshandler.Find(mongodbvar, dishname)
 	items.DishItem = dishfind
 
 	t.Execute(httpwriter, items)
@@ -265,7 +218,7 @@ func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 
 func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 
-	dishtoadd := Dish{}
+	dishtoadd := disheshandler.Dish{}
 
 	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
 	dishtoadd.Type = req.FormValue("dishtype")
@@ -274,7 +227,7 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := Dishupdate(mongodbvar, dishtoadd)
+	ret := disheshandler.Dishupdate(mongodbvar, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -307,7 +260,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 		Info       ControllerInfo
 		FieldNames []string
 		Rows       []Row
-		DishItem   Dish
+		DishItem   disheshandler.Dish
 	}
 
 	// create new template
@@ -316,13 +269,13 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Delete"
 
-	items.DishItem = Dish{}
+	items.DishItem = disheshandler.Dish{}
 	items.DishItem.Name = dishselected[0]
 
-	var dishfind = Dish{}
+	var dishfind = disheshandler.Dish{}
 	var dishname = items.DishItem.Name
 
-	dishfind = Find(mongodbvar, dishname)
+	dishfind = disheshandler.Find(mongodbvar, dishname)
 	items.DishItem = dishfind
 
 	t.Execute(httpwriter, items)
@@ -333,7 +286,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 
 func dishdelete(httpwriter http.ResponseWriter, req *http.Request) {
 
-	dishtoadd := Dish{}
+	dishtoadd := disheshandler.Dish{}
 
 	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
 	dishtoadd.Type = req.FormValue("dishtype")
@@ -342,7 +295,7 @@ func dishdelete(httpwriter http.ResponseWriter, req *http.Request) {
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := Dishdelete(mongodbvar, dishtoadd)
+	ret := disheshandler.Dishdelete(mongodbvar, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -365,7 +318,7 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	dishtodelete := Dish{}
+	dishtodelete := disheshandler.Dish{}
 
 	ret := helper.Resultado{}
 
@@ -373,7 +326,7 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 
 		dishtodelete.Name = dishselected[x]
 
-		ret = Dishdelete(mongodbvar, dishtodelete)
+		ret = disheshandler.Dishdelete(mongodbvar, dishtodelete)
 	}
 
 	if ret.IsSuccessful == "Y" {
