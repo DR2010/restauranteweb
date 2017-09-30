@@ -6,9 +6,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	cachehandler "restauranteweb/areas/cachehandler"
 	disheshandler "restauranteweb/areas/disheshandler"
 	helper "restauranteweb/areas/helper"
 
+	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +20,7 @@ var mongodbvar helper.DatabaseX
 
 var db *sql.DB
 var err error
+var redisclient *redis.Client
 
 // Looks after the main routing
 //
@@ -33,6 +36,17 @@ func main() {
 	// if err != nil {
 	// 	panic(err.Error())
 	// }
+
+	redisclient = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	loadreferencedatainredis()
+
+	fmt.Println(">>> Web Server: restauranteweb.exe running.")
+	fmt.Println("Loading reference data in cache - Redis")
 
 	mongodbvar.Location = "localhost"
 	mongodbvar.Database = "restaurante"
@@ -60,6 +74,15 @@ func main() {
 		//using the mux router
 		log.Fatal("ListenAndServe: ", err)
 	}
+}
+
+func loadreferencedatainredis() {
+	// err = client.Set("MongoDB.Location", "{\"MongoDB.Location\":\"192.168.2.180\"}", 0).Err()
+	// err = redisclient.Set("Web.MongoDB.Location", "192.168.2.180", 0).Err()
+	err = redisclient.Set("Web.MongoDB.Location", "localhost", 0).Err()
+	err = redisclient.Set("Web.MongoDB.Database", "restaurante", 0).Err()
+	err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
+	err = redisclient.Set("Web.APIServer.Port", ":1520", 0).Err()
 }
 
 func root(httpwriter http.ResponseWriter, r *http.Request) {
@@ -152,7 +175,7 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 }
 
 func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
-	disheshandler.List(httpwriter, mongodbvar)
+	disheshandler.List(httpwriter, redisclient)
 }
 
 func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -160,60 +183,11 @@ func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
 }
 
 func dishadd(httpwriter http.ResponseWriter, req *http.Request) {
-
-	mongodbvar.Location = "localhost"
-	mongodbvar.Database = "restaurante"
-	mongodbvar.APIServer = "http://localhost:1520/"
-
-	disheshandler.Add(httpwriter, req, mongodbvar)
+	disheshandler.Add(httpwriter, req, redisclient)
 }
 
-func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
-
-	req.ParseForm()
-
-	// Get all selected records
-	dishselected := req.Form["dishes"]
-
-	var numrecsel = len(dishselected)
-
-	if numrecsel <= 0 {
-		http.Redirect(httpwriter, req, "/dishlist", 301)
-		return
-	}
-
-	type ControllerInfo struct {
-		Name string
-	}
-	type Row struct {
-		Description []string
-	}
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-		DishItem   disheshandler.Dish
-	}
-
-	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishupdate.html")
-
-	items := DisplayTemplate{}
-	items.Info.Name = "Dish Add"
-
-	items.DishItem = disheshandler.Dish{}
-	items.DishItem.Name = dishselected[0]
-
-	var dishfind = disheshandler.Dish{}
-	var dishname = items.DishItem.Name
-
-	dishfind = disheshandler.Find(mongodbvar, dishname)
-	items.DishItem = dishfind
-
-	t.Execute(httpwriter, items)
-
-	return
-
+func dishupdatedisplay(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+	disheshandler.LoadDisplayForUpdate(httpresponsewriter, httprequest, redisclient)
 }
 
 func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
@@ -227,7 +201,7 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := disheshandler.Dishupdate(mongodbvar, dishtoadd)
+	ret := disheshandler.DishupdateAPI(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -275,7 +249,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	var dishfind = disheshandler.Dish{}
 	var dishname = items.DishItem.Name
 
-	dishfind = disheshandler.Find(mongodbvar, dishname)
+	dishfind = disheshandler.FindAPI(redisclient, dishname)
 	items.DishItem = dishfind
 
 	t.Execute(httpwriter, items)
@@ -336,6 +310,68 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 	}
 
 	http.Redirect(httpwriter, req, "/dishlist", 301)
+	return
+
+}
+
+func showcache(httpwriter http.ResponseWriter, req *http.Request) {
+	cachehandler.List(httpwriter, redisclient)
+}
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// This is the section of methods to be deleted when it is all working
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+func dishupdatedisplayTBD(httpwriter http.ResponseWriter, req *http.Request) {
+
+	req.ParseForm()
+
+	// Get all selected records
+	dishselected := req.Form["dishes"]
+
+	var numrecsel = len(dishselected)
+
+	if numrecsel <= 0 {
+		http.Redirect(httpwriter, req, "/dishlist", 301)
+		return
+	}
+
+	type ControllerInfo struct {
+		Name string
+	}
+	type Row struct {
+		Description []string
+	}
+	type DisplayTemplate struct {
+		Info       ControllerInfo
+		FieldNames []string
+		Rows       []Row
+		DishItem   disheshandler.Dish
+	}
+
+	// create new template
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishupdate.html")
+
+	items := DisplayTemplate{}
+	items.Info.Name = "Dish Add"
+
+	items.DishItem = disheshandler.Dish{}
+	items.DishItem.Name = dishselected[0]
+
+	var dishfind = disheshandler.Dish{}
+	var dishname = items.DishItem.Name
+
+	dishfind = disheshandler.FindAPI(redisclient, dishname)
+	items.DishItem = dishfind
+
+	t.Execute(httpwriter, items)
+
 	return
 
 }

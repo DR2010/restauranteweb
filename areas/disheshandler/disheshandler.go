@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"net/http"
 	helper "restauranteweb/areas/helper"
+
+	"github.com/go-redis/redis"
 )
 
 // This is the template to display as part of the html template
@@ -30,14 +32,14 @@ var mongodbvar helper.DatabaseX
 
 // List = assemble results of API call to dish list
 //
-func List(httpwriter http.ResponseWriter, mongodbvar helper.DatabaseX) {
+func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
 	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
 
 	// Get list of dishes (api call)
 	//
-	var dishlist = listdishes(mongodbvar)
+	var dishlist = listdishes(redisclient)
 
 	// Assemble the display structure for html template
 	//
@@ -87,7 +89,7 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 }
 
 // Add is
-func Add(httpwriter http.ResponseWriter, req *http.Request, mongodbvar helper.DatabaseX) {
+func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
 	dishtoadd := Dish{}
 
@@ -98,7 +100,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, mongodbvar helper.Da
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := DishaddAPI(mongodbvar, dishtoadd)
+	ret := DishaddAPI(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -107,17 +109,18 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, mongodbvar helper.Da
 	}
 }
 
-func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
+// LoadDisplayForUpdate is
+func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
 
-	req.ParseForm()
+	httprequest.ParseForm()
 
 	// Get all selected records
-	dishselected := req.Form["dishes"]
+	dishselected := httprequest.Form["dishes"]
 
 	var numrecsel = len(dishselected)
 
 	if numrecsel <= 0 {
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		http.Redirect(httpwriter, httprequest, "/dishlist", 301)
 		return
 	}
 
@@ -146,7 +149,7 @@ func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	var dishfind = Dish{}
 	var dishname = items.DishItem.Name
 
-	dishfind = Find(mongodbvar, dishname)
+	dishfind = FindAPI(redisclient, dishname)
 	items.DishItem = dishfind
 
 	t.Execute(httpwriter, items)
@@ -155,7 +158,8 @@ func dishupdatedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 
 }
 
-func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
+// Update dish sent
+func Update(redisclient *redis.Client, httpwriter http.ResponseWriter, req *http.Request) {
 
 	dishtoadd := Dish{}
 
@@ -166,7 +170,7 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := Dishupdate(mongodbvar, dishtoadd)
+	ret := DishupdateAPI(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -175,7 +179,7 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
+func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
 	req.ParseForm()
 
@@ -214,7 +218,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	var dishfind = Dish{}
 	var dishname = items.DishItem.Name
 
-	dishfind = Find(mongodbvar, dishname)
+	dishfind = FindAPI(redisclient, dishname)
 	items.DishItem = dishfind
 
 	t.Execute(httpwriter, items)
@@ -277,4 +281,34 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 	http.Redirect(httpwriter, req, "/dishlist", 301)
 	return
 
+}
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// This is the section of methods to be deleted when it is all working
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+func dishupdateTBD(redisclient *redis.Client, httpwriter http.ResponseWriter, req *http.Request) {
+
+	dishtoadd := Dish{}
+
+	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
+	dishtoadd.Type = req.FormValue("dishtype")
+	dishtoadd.Price = req.FormValue("dishprice")
+	dishtoadd.GlutenFree = req.FormValue("dishglutenfree")
+	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
+	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
+
+	ret := DishupdateAPI(redisclient, dishtoadd)
+
+	if ret.IsSuccessful == "Y" {
+		// http.ServeFile(httpwriter, req, "success.html")
+		http.Redirect(httpwriter, req, "/dishlist", 301)
+		return
+	}
 }

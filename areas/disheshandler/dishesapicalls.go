@@ -9,6 +9,8 @@ import (
 	helper "restauranteweb/areas/helper"
 	"strings"
 
+	"github.com/go-redis/redis"
+
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -25,9 +27,14 @@ type Dish struct {
 }
 
 // ListDishes works
-func listdishes(mongodbvar helper.DatabaseX) []Dish {
+func listdishes(redisclient *redis.Client) []Dish {
 
-	var urlrequest = mongodbvar.APIServer + "/dishlist"
+	var apiserver string
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/dishlist"
+
+	// urlrequest = "http://localhost:1520/dishlist"
 
 	url := fmt.Sprintf(urlrequest)
 
@@ -60,9 +67,13 @@ func listdishes(mongodbvar helper.DatabaseX) []Dish {
 }
 
 // DishaddAPI is
-func DishaddAPI(database helper.DatabaseX, dishInsert Dish) helper.Resultado {
+func DishaddAPI(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 
-	mongodbvar.APIServer = "http://localhost:1520/"
+	mongodbvar := new(helper.DatabaseX)
+
+	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	// mongodbvar.APIServer = "http://localhost:1520/"
 
 	apiURL := mongodbvar.APIServer
 	resource := "/dishadd"
@@ -95,98 +106,80 @@ func DishaddAPI(database helper.DatabaseX, dishInsert Dish) helper.Resultado {
 
 }
 
-// Dishadd is for export
-func Dishadd(database helper.DatabaseX, dishInsert Dish) helper.Resultado {
+// FindAPI is to find stuff
+func FindAPI(redisclient *redis.Client, dishFind string) Dish {
 
-	database.Collection = "dishes"
+	var apiserver string
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
-	session, err := mgo.Dial(database.Location)
+	urlrequest := apiserver + "/dishfind?dishname=" + dishFind
+
+	url := fmt.Sprintf(urlrequest)
+
+	var emptydisplay Dish
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	collection := session.DB(database.Database).C(database.Collection)
-
-	err = collection.Insert(dishInsert)
-
-	if err != nil {
-		log.Fatal(err)
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
 	}
 
-	var res helper.Resultado
-	res.ErrorCode = "0001"
-	res.ErrorDescription = "Something Happened"
-	res.IsSuccessful = "Y"
+	client := &http.Client{}
 
-	return res
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	var dishback Dish
+
+	if err := json.NewDecoder(resp.Body).Decode(&dishback); err != nil {
+		log.Println(err)
+	}
+
+	return dishback
+
 }
 
-// Find is to find stuff
-func Find(database helper.DatabaseX, dishFind string) Dish {
+// DishupdateAPI is
+func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado {
 
-	database.Collection = "dishes"
+	mongodbvar := new(helper.DatabaseX)
 
-	dishName := dishFind
-	dishnull := Dish{}
+	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
-	session, err := mgo.Dial(database.Location)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+	apiURL := mongodbvar.APIServer
+	resource := "/dishupdate"
 
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
+	data := url.Values{}
+	data.Add("dishname", dishUpdate.Name)
+	data.Add("dishtype", dishUpdate.Type)
+	data.Add("dishprice", dishUpdate.Price)
+	data.Add("dishglutenfree", dishUpdate.GlutenFree)
+	data.Add("dishdairyfree", dishUpdate.DairyFree)
+	data.Add("dishvegetarian", dishUpdate.Vegetarian)
 
-	c := session.DB(database.Database).C(database.Collection)
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
 
-	result := []Dish{}
-	err1 := c.Find(bson.M{"name": dishName}).All(&result)
-	if err1 != nil {
-		log.Fatal(err1)
-	}
+	body := strings.NewReader(data.Encode())
+	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
 
-	var numrecsel = len(result)
+	fmt.Println("resp2.Status:" + resp2.Status)
 
-	if numrecsel <= 0 {
-		return dishnull
-	}
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
 
-	return result[0]
-}
-
-// Dishupdate is
-func Dishupdate(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
-
-	database.Collection = "dishes"
-
-	session, err := mgo.Dial(database.Location)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	collection := session.DB(database.Database).C(database.Collection)
-
-	err = collection.Update(bson.M{"name": dishUpdate.Name}, dishUpdate)
-
-	if err != nil {
-		log.Fatal(err)
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
 	}
 
-	var res helper.Resultado
-	res.ErrorCode = "0001"
-	res.ErrorDescription = "Something Happened"
-	res.IsSuccessful = "Y"
-
-	return res
+	return emptydisplay
 }
 
 // Dishdelete is
@@ -217,4 +210,108 @@ func Dishdelete(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
 	res.IsSuccessful = "Y"
 
 	return res
+}
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// This is the section of methods to be deleted when it is all working
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+// DishaddTBD is for export
+func DishaddTBD(database helper.DatabaseX, dishInsert Dish) helper.Resultado {
+
+	database.Collection = "dishes"
+
+	session, err := mgo.Dial(database.Location)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+
+	collection := session.DB(database.Database).C(database.Collection)
+
+	err = collection.Insert(dishInsert)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var res helper.Resultado
+	res.ErrorCode = "0001"
+	res.ErrorDescription = "Something Happened"
+	res.IsSuccessful = "Y"
+
+	return res
+}
+
+// DishupdateTBD is
+func DishupdateTBD(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
+
+	database.Collection = "dishes"
+
+	session, err := mgo.Dial(database.Location)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+
+	collection := session.DB(database.Database).C(database.Collection)
+
+	err = collection.Update(bson.M{"name": dishUpdate.Name}, dishUpdate)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var res helper.Resultado
+	res.ErrorCode = "0001"
+	res.ErrorDescription = "Something Happened"
+	res.IsSuccessful = "Y"
+
+	return res
+}
+
+// FindTBD is to find stuff
+func FindTBD(database helper.DatabaseX, dishFind string) Dish {
+
+	database.Collection = "dishes"
+
+	dishName := dishFind
+	dishnull := Dish{}
+
+	session, err := mgo.Dial(database.Location)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+
+	c := session.DB(database.Database).C(database.Collection)
+
+	result := []Dish{}
+	err1 := c.Find(bson.M{"name": dishName}).All(&result)
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+
+	var numrecsel = len(result)
+
+	if numrecsel <= 0 {
+		return dishnull
+	}
+
+	return result[0]
 }
