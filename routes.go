@@ -65,4 +65,5 @@ var routes = Routes{
 	Route{"dishupdate", "POST", "/dishupdate", dishupdate},
 	Route{"dishdelete", "POST", "/dishdelete", dishdelete},
 	Route{"showcache", "POST", "/showcache", showcache},
+	Route{"errorpage", "POST", "/errorpage", errorpage},
 }

@@ -13,7 +13,8 @@ import (
 
 // ControllerInfo is
 type ControllerInfo struct {
-	Name string
+	Name    string
+	Message string
 }
 
 // Row is
@@ -105,8 +106,21 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
 		http.Redirect(httpwriter, req, "/dishlist", 301)
-		return
+	} else {
+		// http.ServeFile(httpwriter, req, "templates/error.html")
+		// http.PostForm("templates/error.html", url.Values{"key": {"Value"}, "id": {"123"}})
+
+		// create new template
+		t, _ := template.ParseFiles("templates/indextemplate.html", "templates/error.html")
+
+		items := DisplayTemplate{}
+		items.Info.Name = "Error"
+		items.Info.Message = "Dish already registered. Press back to make changes and resubmit."
+
+		t.Execute(httpwriter, items)
+
 	}
+	return
 }
 
 // LoadDisplayForUpdate is
@@ -125,7 +139,8 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 	}
 
 	type ControllerInfo struct {
-		Name string
+		Name    string
+		Message string
 	}
 	type Row struct {
 		Description []string

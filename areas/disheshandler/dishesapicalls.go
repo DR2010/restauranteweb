@@ -100,6 +100,8 @@ func DishaddAPI(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 
 	if resp2.Status == "200 OK" {
 		emptydisplay.IsSuccessful = "Y"
+	} else {
+		emptydisplay.IsSuccessful = "N"
 	}
 
 	return emptydisplay

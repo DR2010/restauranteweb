@@ -206,8 +206,10 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
 		http.Redirect(httpwriter, req, "/dishlist", 301)
-		return
+	} else {
+		http.Redirect(httpwriter, req, "/errorpage", 301)
 	}
+	return
 }
 
 func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -316,6 +318,21 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 
 func showcache(httpwriter http.ResponseWriter, req *http.Request) {
 	cachehandler.List(httpwriter, redisclient)
+}
+
+func errorpage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+	// create new template
+	var listtemplate = `
+	{{define "listtemplate"}}
+
+	{{end}}
+	`
+
+	t, _ := template.ParseFiles("templates/error.html")
+	t, _ = t.Parse(listtemplate)
+
+	t.Execute(httpresponsewriter, listtemplate)
+	return
 }
 
 // ----------------------------------------------------------------------

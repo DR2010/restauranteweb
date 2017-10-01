@@ -1,0 +1,11 @@
+{{define "listtemplate"}}
+
+<h1>Error</h1>
+<form method="POST" action="/dishadd">
+    <div>
+        <p/> <b>Error Message:</b>
+            {{ .Info.Message }}
+    </div>
+</form>
+
+{{end}}
