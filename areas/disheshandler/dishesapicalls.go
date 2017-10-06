@@ -184,6 +184,38 @@ func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado 
 	return emptydisplay
 }
 
+// DishdeleteAPI is
+func DishdeleteAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado {
+
+	mongodbvar := new(helper.DatabaseX)
+
+	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	apiURL := mongodbvar.APIServer
+	resource := "/dishdelete"
+
+	data := url.Values{}
+	data.Add("dishname", dishUpdate.Name)
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(data.Encode())
+	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	fmt.Println("resp2.Status:" + resp2.Status)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+	}
+
+	return emptydisplay
+}
+
 // Dishdelete is
 func Dishdelete(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
 
@@ -212,6 +244,38 @@ func Dishdelete(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
 	res.IsSuccessful = "Y"
 
 	return res
+}
+
+// DishDeleteMultipleAPI is
+func DishDeleteMultipleAPI(redisclient *redis.Client, dishestodelete []string) helper.Resultado {
+
+	mongodbvar := new(helper.DatabaseX)
+
+	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	apiURL := mongodbvar.APIServer
+	resource := "/dishdelete"
+
+	data := url.Values{}
+	data.Add("dishname", dishestodelete[0])
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(data.Encode())
+	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	fmt.Println("resp2.Status:" + resp2.Status)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+	}
+
+	return emptydisplay
 }
 
 // ----------------------------------------------------------------------

@@ -1,0 +1,32 @@
+ {{define "listtemplate"}}
+
+<h1>Add Order Item</h1>
+<form method="POST" action="/orderitemadd">
+    <div>
+        <p/> <b>Dish Name:</b>
+        <p/>
+        <input type="text" name="dishid">
+
+        <p/> <b>Gluten Free:</b>
+        <p/>
+        <input type="text" name="glutenfree">
+
+        <p/> <b>Diary Free:</b>
+        <p/>
+        <input type="text" name="diaryfree">
+
+        <p/> <b>Price:</b>
+        <p/>
+        <input type="text" name="price">
+
+        <p/> <b>Tax:</b>
+        <p/>
+        <input type="text" name="tax">
+
+        <p/>
+        <input type="submit" formaction="/orderadd" value="Submit">
+        <p/>
+    </div>
+</form>
+
+{{end}}

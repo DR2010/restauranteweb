@@ -1,0 +1,35 @@
+ {{define "listtemplate"}}
+
+<h1>Add Order</h1>
+<form method="POST" action="/dishadd">
+    <div>
+        <p/> <b>Client Name:</b>
+        <p/>
+        <input type="text" name="clientname">
+
+        <p/> <b>Client ID:</b>
+        <p/>
+        <input type="text" name="clientid">
+
+        <p/> <b>Eat In, Take Away or Delivery:</b>
+        <p/>
+        <input type="text" name="eatmode">
+
+        <p/> <b>Delivery Mode:</b>
+        <p/>
+        <input type="text" name="deliverymode">
+
+        <p/> <b>DeliveryLocation:</b>
+        <p/>
+        <input type="text" name="deliverylocation">
+
+        <p/> <b>Delivery Contact Phone:</b>
+        <p/>
+        <input type="text" name="deliverycontactphone">
+        <p/>
+        <input type="submit" formaction="/orderadd" value="Submit">
+        <p/>
+    </div>
+</form>
+
+{{end}}

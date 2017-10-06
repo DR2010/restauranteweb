@@ -43,7 +43,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	items := DisplayTemplate{}
 	items.Info.Name = "Cache List"
 
-	var numberoffields = 6
+	var numberoffields = 2
 
 	// Set colum names
 	items.FieldNames = make([]string, numberoffields)

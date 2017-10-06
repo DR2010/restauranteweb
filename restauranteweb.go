@@ -83,6 +83,9 @@ func loadreferencedatainredis() {
 	err = redisclient.Set("Web.MongoDB.Database", "restaurante", 0).Err()
 	err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
 	err = redisclient.Set("Web.APIServer.Port", ":1520", 0).Err()
+
+	err = redisclient.Set("Web.Debug", "Y", 0).Err()
+
 }
 
 func root(httpwriter http.ResponseWriter, r *http.Request) {
@@ -90,7 +93,7 @@ func root(httpwriter http.ResponseWriter, r *http.Request) {
 	// create new template
 	var listtemplate = `
 		{{define "listtemplate"}}
-	
+	    This is our restaurant!
 		{{end}}
 		`
 
@@ -212,7 +215,12 @@ func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request) {
+func dishdeletedisplay(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+
+	disheshandler.LoadDisplayForDelete(httpresponsewriter, httprequest, redisclient)
+
+}
+func dishdeletedisplayTBD(httpwriter http.ResponseWriter, req *http.Request) {
 
 	req.ParseForm()
 
@@ -294,16 +302,9 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	dishtodelete := disheshandler.Dish{}
-
 	ret := helper.Resultado{}
 
-	for x := 0; x < len(dishselected); x++ {
-
-		dishtodelete.Name = dishselected[x]
-
-		ret = disheshandler.Dishdelete(mongodbvar, dishtodelete)
-	}
+	ret = disheshandler.DishDeleteMultipleAPI(redisclient, dishselected)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")

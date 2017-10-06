@@ -173,6 +173,56 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 
 }
 
+// LoadDisplayForDelete is
+func LoadDisplayForDelete(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+
+	httprequest.ParseForm()
+
+	// Get all selected records
+	dishselected := httprequest.Form["dishes"]
+
+	var numrecsel = len(dishselected)
+
+	if numrecsel <= 0 {
+		http.Redirect(httpwriter, httprequest, "/dishlist", 301)
+		return
+	}
+
+	type ControllerInfo struct {
+		Name    string
+		Message string
+	}
+	type Row struct {
+		Description []string
+	}
+	type DisplayTemplate struct {
+		Info       ControllerInfo
+		FieldNames []string
+		Rows       []Row
+		DishItem   Dish
+	}
+
+	// create new template
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishdelete.html")
+
+	items := DisplayTemplate{}
+	items.Info.Name = "Dish Delete"
+
+	items.DishItem = Dish{}
+	items.DishItem.Name = dishselected[0]
+
+	var dishfind = Dish{}
+	var dishname = items.DishItem.Name
+
+	dishfind = FindAPI(redisclient, dishname)
+	items.DishItem = dishfind
+
+	t.Execute(httpwriter, items)
+
+	return
+
+}
+
 // Update dish sent
 func Update(redisclient *redis.Client, httpwriter http.ResponseWriter, req *http.Request) {
 
@@ -186,6 +236,27 @@ func Update(redisclient *redis.Client, httpwriter http.ResponseWriter, req *http
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
 	ret := DishupdateAPI(redisclient, dishtoadd)
+
+	if ret.IsSuccessful == "Y" {
+		// http.ServeFile(httpwriter, req, "success.html")
+		http.Redirect(httpwriter, req, "/dishlist", 301)
+		return
+	}
+}
+
+// Delete dish sent
+func Delete(redisclient *redis.Client, httpwriter http.ResponseWriter, req *http.Request) {
+
+	dishtoadd := Dish{}
+
+	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
+	dishtoadd.Type = req.FormValue("dishtype")
+	dishtoadd.Price = req.FormValue("dishprice")
+	dishtoadd.GlutenFree = req.FormValue("dishglutenfree")
+	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
+	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
+
+	ret := DishdeleteAPI(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
@@ -262,7 +333,7 @@ func dishdelete(httpwriter http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
+func Dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 
 	req.ParseForm()
 
