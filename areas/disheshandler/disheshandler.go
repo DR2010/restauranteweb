@@ -1,3 +1,7 @@
+// Package disheshandler Handler for dishes web
+// -----------------------------------------------------------
+// .../src/restauranteweb/areas/disherhandler/disheshandler.go
+// -----------------------------------------------------------
 package disheshandler
 
 import (
@@ -101,7 +105,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
 	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
 
-	ret := DishaddAPI(redisclient, dishtoadd)
+	ret := APIcallAdd(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")

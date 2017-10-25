@@ -1,3 +1,7 @@
+// Routes are defined here
+// -----------------------------------------------
+// .../src/restauranteweb/routes.go
+// -----------------------------------------------
 package main
 
 import (
@@ -66,4 +70,6 @@ var routes = Routes{
 	Route{"dishdelete", "POST", "/dishdelete", dishdelete},
 	Route{"showcache", "GET", "/showcache", showcache},
 	Route{"errorpage", "POST", "/errorpage", errorpage},
+	Route{"orderlist", "GET", "/orderlist", orderlist},
+	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
 }

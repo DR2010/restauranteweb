@@ -4,9 +4,11 @@
 <h2>{{ .Info.Name }} </h2>
 <div id="header" class="navbar navbar-fixed-right">
     {{if eq .Info.Name "Dish List" }}
-    <button type="submit" formaction="/dishadddisplay" value="Add">Add</button>
+    <button type="submit" formaction="/dishadddisplay" value="Add">Add Dish</button>
     <button type="submit" formaction="/dishupdatedisplay" value="Update">Update</button>
-    <button type="submit" formaction="/dishdeletemultiple" value="Delete">Delete</button> {{end}}
+    <button type="submit" formaction="/dishdeletemultiple" value="Delete">Delete</button> {{end}} {{if eq .Info.Name "Order List"}}
+    <button type="submit" formaction="/orderadddisplay" value="Add">Add Order</button>{{end}}
+
 </div>
 <div style="float:left;" class="table-responsive">
     <p>

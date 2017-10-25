@@ -1,3 +1,7 @@
+// Package disheshandler API calls for dishes web
+// --------------------------------------------------------------
+// .../src/restauranteweb/areas/disherhandler/dishesapicalls.go
+// --------------------------------------------------------------
 package disheshandler
 
 import (
@@ -66,8 +70,8 @@ func listdishes(redisclient *redis.Client) []Dish {
 	return dishlist
 }
 
-// DishaddAPI is
-func DishaddAPI(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
+// APIcallAdd is
+func APIcallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 
@@ -217,7 +221,7 @@ func DishdeleteAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado 
 }
 
 // Dishdelete is
-func Dishdelete(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
+func Dishdelete(database helper.DatabaseX, objectDelete Dish) helper.Resultado {
 
 	database.Collection = "dishes"
 
@@ -232,7 +236,7 @@ func Dishdelete(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
 
 	collection := session.DB(database.Database).C(database.Collection)
 
-	err = collection.Remove(bson.M{"name": dishUpdate.Name})
+	err = collection.Remove(bson.M{"name": objectDelete.Name})
 
 	if err != nil {
 		log.Fatal(err)

@@ -1,3 +1,7 @@
+// Package cachehandler to handle call to cache
+// --------------------------------------------------------------
+// .../src/restauranteweb/areas/cachehandler/cachehandler.go
+// --------------------------------------------------------------
 package cachehandler
 
 import (

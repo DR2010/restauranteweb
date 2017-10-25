@@ -1,3 +1,7 @@
+// Main web application program for restauranteweb
+// -----------------------------------------------
+// .../src/restauranteweb/restauranteweb.go
+// -----------------------------------------------
 package main
 
 import (
@@ -9,6 +13,7 @@ import (
 	cachehandler "restauranteweb/areas/cachehandler"
 	disheshandler "restauranteweb/areas/disheshandler"
 	helper "restauranteweb/areas/helper"
+	"restauranteweb/areas/ordershandler"
 
 	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
@@ -50,7 +55,8 @@ func main() {
 
 	mongodbvar.Location = "localhost"
 	mongodbvar.Database = "restaurante"
-	mongodbvar.APIServer = "http://localhost:1520/"
+	// mongodbvar.APIServer = "http://192.168.2.180:1520/"
+	// mongodbvar.APIServer = "http://localhost:1520/"
 
 	fmt.Println("Running... Listening to :1515 - print")
 	fmt.Println("MongoDB location: " + mongodbvar.Location)
@@ -78,11 +84,16 @@ func main() {
 
 func loadreferencedatainredis() {
 	// err = client.Set("MongoDB.Location", "{\"MongoDB.Location\":\"192.168.2.180\"}", 0).Err()
-	// err = redisclient.Set("Web.MongoDB.Location", "192.168.2.180", 0).Err()
-	err = redisclient.Set("Web.MongoDB.Location", "localhost", 0).Err()
+
 	err = redisclient.Set("Web.MongoDB.Database", "restaurante", 0).Err()
-	err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
 	err = redisclient.Set("Web.APIServer.Port", ":1520", 0).Err()
+
+	// rodando from raspberry
+	err = redisclient.Set("Web.MongoDB.Location", "localhost", 0).Err()
+	//err = redisclient.Set("Web.MongoDB.Location", "192.168.2.180", 0).Err()
+
+	err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
+	// err = redisclient.Set("Web.APIServer.IPAddress", "http://192.168.2.180:1520/", 0).Err()
 
 	err = redisclient.Set("Web.Debug", "Y", 0).Err()
 
@@ -179,6 +190,14 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 
 func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
 	disheshandler.List(httpwriter, redisclient)
+}
+
+func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
+	ordershandler.List(httpwriter, redisclient)
+}
+
+func orderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
+	ordershandler.LoadDisplayForAdd(httpwriter)
 }
 
 func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -334,62 +353,4 @@ func errorpage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 
 	t.Execute(httpresponsewriter, listtemplate)
 	return
-}
-
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// This is the section of methods to be deleted when it is all working
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-
-func dishupdatedisplayTBD(httpwriter http.ResponseWriter, req *http.Request) {
-
-	req.ParseForm()
-
-	// Get all selected records
-	dishselected := req.Form["dishes"]
-
-	var numrecsel = len(dishselected)
-
-	if numrecsel <= 0 {
-		http.Redirect(httpwriter, req, "/dishlist", 301)
-		return
-	}
-
-	type ControllerInfo struct {
-		Name string
-	}
-	type Row struct {
-		Description []string
-	}
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-		DishItem   disheshandler.Dish
-	}
-
-	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishupdate.html")
-
-	items := DisplayTemplate{}
-	items.Info.Name = "Dish Add"
-
-	items.DishItem = disheshandler.Dish{}
-	items.DishItem.Name = dishselected[0]
-
-	var dishfind = disheshandler.Dish{}
-	var dishname = items.DishItem.Name
-
-	dishfind = disheshandler.FindAPI(redisclient, dishname)
-	items.DishItem = dishfind
-
-	t.Execute(httpwriter, items)
-
-	return
-
 }
