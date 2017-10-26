@@ -16,7 +16,7 @@ import (
 	"restauranteweb/areas/ordershandler"
 
 	"github.com/go-redis/redis"
-	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/go-sql-driver/mysql"
 
 	"golang.org/x/crypto/bcrypt"
 )
