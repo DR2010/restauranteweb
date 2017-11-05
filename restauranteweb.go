@@ -85,17 +85,24 @@ func main() {
 func loadreferencedatainredis() {
 	// err = client.Set("MongoDB.Location", "{\"MongoDB.Location\":\"192.168.2.180\"}", 0).Err()
 
-	err = redisclient.Set("Web.MongoDB.Database", "restaurante", 0).Err()
-	err = redisclient.Set("Web.APIServer.Port", ":1520", 0).Err()
+	// err = redisclient.Set("Web.MongoDB.Database", "restaurante", 0).Err()
+	// err = redisclient.Set("Web.APIServer.Port", ":1520", 0).Err()
 
 	// rodando from raspberry
-	err = redisclient.Set("Web.MongoDB.Location", "localhost", 0).Err()
+	// err = redisclient.Set("Web.MongoDB.Location", "localhost", 0).Err()
 	//err = redisclient.Set("Web.MongoDB.Location", "192.168.2.180", 0).Err()
 
-	err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
+	// err = redisclient.Set("Web.APIServer.IPAddress", "http://localhost:1520/", 0).Err()
 	// err = redisclient.Set("Web.APIServer.IPAddress", "http://192.168.2.180:1520/", 0).Err()
 
-	err = redisclient.Set("Web.Debug", "Y", 0).Err()
+	// err = redisclient.Set("Web.Debug", "Y", 0).Err()
+
+	variable := helper.Readfileintostruct()
+	err = redisclient.Set("Web.MongoDB.Database", variable.APIMongoDBDatabase, 0).Err()
+	err = redisclient.Set("Web.APIServer.Port", variable.APIAPIServerPort, 0).Err()
+	err = redisclient.Set("Web.MongoDB.Location", variable.APIMongoDBLocation, 0).Err()
+	err = redisclient.Set("Web.APIServer.IPAddress", variable.APIAPIServerIPAddress, 0).Err()
+	err = redisclient.Set("Web.Debug", variable.WEBDebug, 0).Err()
 
 }
 
