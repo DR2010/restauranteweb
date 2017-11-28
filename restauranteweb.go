@@ -195,9 +195,9 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
-	disheshandler.List(httpwriter, redisclient)
-}
+// ----------------------------------------------------------
+// Orders section
+// ----------------------------------------------------------
 
 func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 	ordershandler.List(httpwriter, redisclient)
@@ -205,6 +205,18 @@ func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 
 func orderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	ordershandler.LoadDisplayForAdd(httpwriter)
+}
+
+func orderadd(httpwriter http.ResponseWriter, req *http.Request) {
+	ordershandler.Add(httpwriter, req, redisclient)
+}
+
+// ----------------------------------------------------------
+// Dishes section
+// ----------------------------------------------------------
+
+func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
+	disheshandler.List(httpwriter, redisclient)
 }
 
 func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {

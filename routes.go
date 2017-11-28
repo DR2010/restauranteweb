@@ -72,4 +72,5 @@ var routes = Routes{
 	Route{"errorpage", "POST", "/errorpage", errorpage},
 	Route{"orderlist", "GET", "/orderlist", orderlist},
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
+	Route{"orderadd", "POST", "/orderadd", orderadd},
 }

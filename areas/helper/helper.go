@@ -30,7 +30,8 @@ func check(e error) {
 	}
 }
 
-// DatabaseX is a struct
+// RestEnvVariables = restaurante environment variables
+//
 type RestEnvVariables struct {
 	APIMongoDBLocation    string // location of the database localhost, something.com, etc
 	APIMongoDBDatabase    string // database name

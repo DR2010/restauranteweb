@@ -18,7 +18,7 @@ function addNewItem() {
     var cell2 = row.insertCell(2);
     var cell3 = row.insertCell(3);
 
-    x = '<input type=checkbox name=row' + lastRowNumber + ' id=checkitem' + lastRowNumber + '>';
+    x = '<input type=checkbox name=row' + lastRowNumber + ' id=checkitem' + lastRowNumber + ' value=' + valueplate + '>';
 
     var sel = document.getElementById("pratoname").selectedIndex;
     cell0.innerHTML = x;
@@ -26,6 +26,62 @@ function addNewItem() {
     cell1.innerHTML = valueplate.options[sel].text;
     cell2.innerHTML = plateqtd.value;
     cell3.innerHTML = plateqtd.value * prato[sel].price;
+}
+
+//
+// Save order
+function saveOrder() {
+
+    window.alert("submitting order...");
+
+    var orderClientID = document.getElementById("orderClientID");
+    var orderID = document.getElementById("orderID");
+    var orderClientName = document.getElementById("orderClientName");
+    var orderDate = document.getElementById("orderDate");
+    var orderTime = document.getElementById("orderTime");
+
+    window.alert("orderClientID..." + orderClientID.value);
+
+    var oTable = document.getElementById('myTable');
+    var rowLength = oTable.rows.length;
+
+    var pratosselected = new Array();
+
+    //loops through rows    
+    for (i = 0; i < rowLength; i++) {
+
+        var oCells = oTable.rows.item(i).cells;
+        var cellLength = oCells.length;
+
+        var pratoname = "";
+        var quantidade = "";
+        var preco = "";
+
+
+        for (var j = 0; j < cellLength; j++) {
+
+            var cellVal = oCells.item(j).innerHTML;
+            if (j == 0) {
+                action = cellVal;
+            }
+            if (j == 1) {
+                pratoname = cellVal;
+            }
+            if (j == 2) {
+                quantidade = cellVal;
+            }
+            if (j == 3) {
+                preco = cellVal;
+
+            }
+
+            pratosselected[i] = { pratoname: pratoname, quantidade: quantidade, preco: preco };
+        }
+    }
+
+    // 0 is the header
+    window.alert("Prato..." + pratosselected[1].pratoname);
+
 }
 
 function showSelectedRows() {
@@ -45,11 +101,7 @@ function showSelectedRows() {
             if (chk.checked) alert(col2);
 
     }
-
     return selchbox;
-
-
-
 }
 
 function removeSelectedRows() {

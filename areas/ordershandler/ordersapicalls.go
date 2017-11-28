@@ -110,24 +110,26 @@ func APICallList(redisclient *redis.Client) []Order {
 }
 
 // APICallAdd is
-func APICallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
+func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado {
 
-	mongodbvar := new(helper.DatabaseX)
+	envirvar := new(helper.RestEnvVariables)
+	// mongodbvar := new(helper.DatabaseX)
 
-	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	// mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
 	// mongodbvar.APIServer = "http://localhost:1520/"
 
-	apiURL := mongodbvar.APIServer
-	resource := "/dishadd"
+	apiURL := envirvar.APIAPIServerIPAddress
+	resource := "/orderadd"
 
 	data := url.Values{}
-	data.Add("dishname", dishInsert.Name)
-	data.Add("dishtype", dishInsert.Type)
-	data.Add("dishprice", dishInsert.Price)
-	data.Add("dishglutenfree", dishInsert.GlutenFree)
-	data.Add("dishdairyfree", dishInsert.DairyFree)
-	data.Add("dishvegetarian", dishInsert.Vegetarian)
+	data.Add("orderClientID", objectInsert.ClientID)
+	data.Add("orderClientName", objectInsert.ClientName)
+	data.Add("orderDate", objectInsert.Date)
+	data.Add("orderEatMode", objectInsert.EatMode)
+	data.Add("orderDeliveryMode", objectInsert.DeliveryMode)
+	data.Add("orderDeliveryContactPhone", objectInsert.DeliveryContactPhone)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource

@@ -92,14 +92,17 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 // Add is
 func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
-	objecttoadd := Dish{}
+	// it has to be different... since it is not a form post but a json called from javascript
+	//
 
-	objecttoadd.Name = req.FormValue("dishname") // This is the key, must be unique
-	objecttoadd.Type = req.FormValue("dishtype")
-	objecttoadd.Price = req.FormValue("dishprice")
-	objecttoadd.GlutenFree = req.FormValue("dishglutenfree")
-	objecttoadd.DairyFree = req.FormValue("dishdairyfree")
-	objecttoadd.Vegetarian = req.FormValue("dishvegetarian")
+	objecttoadd := Order{}
+
+	objecttoadd.ClientID = req.FormValue("orderClientID") // This is the key, must be unique
+	objecttoadd.ClientName = req.FormValue("orderClientName")
+	objecttoadd.Date = req.FormValue("orderDate")
+	objecttoadd.EatMode = req.FormValue("orderEatMode")
+	objecttoadd.DeliveryMode = req.FormValue("orderDeliveryMode")
+	objecttoadd.DeliveryContactPhone = req.FormValue("orderDeliveryContactPhone")
 
 	ret := APICallAdd(redisclient, objecttoadd)
 

@@ -84,7 +84,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishadd.html")
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishadd.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
@@ -157,7 +157,7 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 	}
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishupdate.html")
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishupdate.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
@@ -297,7 +297,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request, redisc
 	}
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishdelete.html")
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishdelete.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Delete"
@@ -402,3 +402,5 @@ func dishupdateTBD(redisclient *redis.Client, httpwriter http.ResponseWriter, re
 		return
 	}
 }
+
+
