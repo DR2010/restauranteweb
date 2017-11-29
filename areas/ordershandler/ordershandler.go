@@ -5,6 +5,7 @@
 package ordershandler
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -56,7 +57,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// Set colum names
 	items.FieldNames = make([]string, numberoffields)
-	items.FieldNames[0] = "Client ID"
+	items.FieldNames[0] = "Order ID"
 	items.FieldNames[1] = "Name"
 	items.FieldNames[2] = "Date"
 	items.FieldNames[3] = "Mode"
@@ -68,7 +69,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	for i := 0; i < len(list); i++ {
 		items.Rows[i] = Row{}
 		items.Rows[i].Description = make([]string, numberoffields)
-		items.Rows[i].Description[0] = list[i].ClientID
+		items.Rows[i].Description[0] = list[i].ID
 		items.Rows[i].Description[1] = list[i].ClientName
 		items.Rows[i].Description[2] = list[i].Date
 		items.Rows[i].Description[3] = list[i].DeliveryMode
@@ -95,7 +96,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 
 	objecttoadd := Order{}
 
-	objecttoadd.ID = req.FormValue("orderID")             // This is the key, must be unique
+	objecttoadd.ID = ""                                   // This is the key, must be unique
 	objecttoadd.ClientID = req.FormValue("orderClientID") // This is the key, must be unique
 	objecttoadd.ClientName = req.FormValue("orderClientName")
 	objecttoadd.Date = req.FormValue("orderDate")
@@ -103,11 +104,14 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 
 	ret := APICallAdd(redisclient, objecttoadd)
 
-	fmt.Println("ret.IsSuccessful == " + ret.IsSuccessful)
-
-	if ret.IsSuccessful == "Y" {
+	if ret.ID != "" {
 		// http.ServeFile(httpwriter, req, "templates/success.html")
-		http.Redirect(httpwriter, req, "/orderlist", 301)
+		// http.Redirect(httpwriter, req, "/orderlist", 301)
+
+		obj := &RespAddOrder{ID: ret.ID}
+		bresp, _ := json.Marshal(obj)
+
+		fmt.Fprintf(httpwriter, string(bresp)) // write data to response
 
 	} else {
 		// http.ServeFile(httpwriter, req, "templates/error.html")

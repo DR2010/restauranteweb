@@ -121,12 +121,14 @@ function saveOrder() {
             console.log(http.responseText);
             status.value = "Order placed successfully."
 
+            var json_data = http.responseText;
+
+            var contact = JSON.parse(json_data);
+            orderID.value = contact.ID;
+
         }
     }
     http.send(params);
-
-
-
 
 }
 

@@ -71,6 +71,11 @@ type SearchCriteria struct {
 	DeliveryContactPhone string // Delivery phone number
 }
 
+// RespAddOrder is
+type RespAddOrder struct {
+	ID string
+}
+
 // APICallList works
 // Order List
 func APICallList(redisclient *redis.Client) []Order {
@@ -110,7 +115,7 @@ func APICallList(redisclient *redis.Client) []Order {
 }
 
 // APICallAdd is
-func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado {
+func APICallAdd(redisclient *redis.Client, objectInsert Order) RespAddOrder {
 
 	envirvar := new(helper.RestEnvVariables)
 
@@ -134,18 +139,33 @@ func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado 
 	urlStr := u.String()
 
 	body := strings.NewReader(data.Encode())
-	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
 
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
 
+	defer resp2.Body.Close()
+	var objectback RespAddOrder
+
 	if resp2.Status == "200 OK" {
 		emptydisplay.IsSuccessful = "Y"
+		var resultado = resp2.Body
+		log.Println(resultado)
+
+		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
+			log.Println(err)
+		} else {
+
+			var x = objectback.ID
+			log.Println(x)
+		}
+
 	} else {
 		emptydisplay.IsSuccessful = "N"
+
 	}
 
-	return emptydisplay
+	return objectback
 
 }
 
