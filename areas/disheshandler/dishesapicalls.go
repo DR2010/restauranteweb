@@ -98,6 +98,7 @@ func APIcallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
 
 	fmt.Println("resp2.Status:" + resp2.Status)
+	fmt.Println("body:" + data.Encode())
 
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status

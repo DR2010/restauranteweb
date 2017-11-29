@@ -5,6 +5,7 @@
 package ordershandler
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	helper "restauranteweb/areas/helper"
@@ -92,23 +93,22 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 // Add is
 func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
-	// it has to be different... since it is not a form post but a json called from javascript
-	//
-
 	objecttoadd := Order{}
 
+	objecttoadd.ID = req.FormValue("orderID")             // This is the key, must be unique
 	objecttoadd.ClientID = req.FormValue("orderClientID") // This is the key, must be unique
 	objecttoadd.ClientName = req.FormValue("orderClientName")
 	objecttoadd.Date = req.FormValue("orderDate")
-	objecttoadd.EatMode = req.FormValue("orderEatMode")
-	objecttoadd.DeliveryMode = req.FormValue("orderDeliveryMode")
-	objecttoadd.DeliveryContactPhone = req.FormValue("orderDeliveryContactPhone")
+	objecttoadd.foodeatplace = req.FormValue("foodeatplace")
 
 	ret := APICallAdd(redisclient, objecttoadd)
 
+	fmt.Println("ret.IsSuccessful == " + ret.IsSuccessful)
+
 	if ret.IsSuccessful == "Y" {
-		// http.ServeFile(httpwriter, req, "success.html")
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		// http.ServeFile(httpwriter, req, "templates/success.html")
+		http.Redirect(httpwriter, req, "/orderlist", 301)
+
 	} else {
 		// http.ServeFile(httpwriter, req, "templates/error.html")
 		// http.PostForm("templates/error.html", url.Values{"key": {"Value"}, "id": {"123"}})
@@ -118,7 +118,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 
 		items := DisplayTemplate{}
 		items.Info.Name = "Error"
-		items.Info.Message = "Dish already registered. Press back to make changes and resubmit."
+		items.Info.Message = "Order already registered. Press back to make changes and resubmit."
 
 		t.Execute(httpwriter, items)
 

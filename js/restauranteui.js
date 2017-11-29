@@ -28,19 +28,37 @@ function addNewItem() {
     cell3.innerHTML = plateqtd.value * prato[sel].price;
 }
 
+function newOrder() {
+
+    var orderID = document.getElementById("orderID");
+    var orderClientID = document.getElementById("orderClientID");
+    var orderClientName = document.getElementById("orderClientName");
+    var orderDate = document.getElementById("orderDate");
+    var orderTime = document.getElementById("orderTime");
+    var foodeatplace = document.getElementById("foodeatplace");
+    var status = document.getElementById("status");
+
+    orderID.value = "";
+    orderClientID.value = "";
+    orderClientName.value = "";
+    orderDate.value = "";
+    orderTime.value = "";
+    foodeatplace.value = "";
+    status.value = "New Order.";
+
+}
+
 //
 // Save order
 function saveOrder() {
 
-    window.alert("submitting order...");
-
-    var orderClientID = document.getElementById("orderClientID");
     var orderID = document.getElementById("orderID");
+    var orderClientID = document.getElementById("orderClientID");
     var orderClientName = document.getElementById("orderClientName");
     var orderDate = document.getElementById("orderDate");
     var orderTime = document.getElementById("orderTime");
-
-    window.alert("orderClientID..." + orderClientID.value);
+    var foodeatplace = document.getElementById("foodeatplace");
+    var status = document.getElementById("status");
 
     var oTable = document.getElementById('myTable');
     var rowLength = oTable.rows.length;
@@ -79,8 +97,36 @@ function saveOrder() {
         }
     }
 
-    // 0 is the header
-    window.alert("Prato..." + pratosselected[1].pratoname);
+
+    // Build the object - order
+    // Post to the server or call web api
+    var http = new XMLHttpRequest();
+    var url = "/orderadd";
+    var params =
+        "orderID=" + orderID.value +
+        "&orderClientID=" + orderClientID.value +
+        "&orderClientName=" + orderClientName.value +
+        "&orderDate=" + orderDate.value +
+        "&orderTime=" + orderTime.value +
+        "&foodeatplace=" + foodeatplace.value;
+
+
+    http.open("POST", url, true);
+
+    //Send the proper header information along with the request
+    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    http.onreadystatechange = function() { //Call a function when the state changes.
+        if (http.readyState == 4 && http.status == 200) {
+            console.log(http.responseText);
+            status.value = "Order placed successfully."
+
+        }
+    }
+    http.send(params);
+
+
+
 
 }
 

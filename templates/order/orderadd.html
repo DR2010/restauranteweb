@@ -1,16 +1,18 @@
 {{define "listtemplate"}}
 
 <h1>Add Order</h1>
-<br>Order Client ID:<br>
-<input type="text" id="orderClientID" name="orderClientID" value="001">
+
 <br>Order ID:<br>
-<input type="text" id="orderID" name="orderID" value="001">
+<input type="text" id="orderID" name="orderID" value="orderid001">
+<br>Order Client ID:<br>
+<input type="text" id="orderClientID" name="orderClientID" value="clientid009">
 <br>Order name:<br>
-<input type="text" id="orderClientName" name="orderClientName" value="Dans order">
+<input type="text" id="orderClientName" name="orderClientName" value="Manuel order">
 <br> Order date:<br>
 <input type="text" id="orderDate" name="orderDate" value="25-10-2017">
 <br> Order time:<br>
-<input type="text" name="orderTime" value="8pm">
+<input type="text" id="orderTime" name="orderTime" value="8pm">
+
 <br> Delivery, Pick-up or Eat-in:<br>
 <select name="foodeatplace" id="foodeatplace">
             <option value="Delivery">Delivery</option>
@@ -49,17 +51,19 @@
         <th>Qty</th>
         <th>Price</th>
     </tr>
-    <tr>
-        <td><input type="checkbox" name="row1" id="checkitem1"><br></td>
-        <td>Feijoada</td>
-        <td>01</td>
-        <td>10.00</td>
-    </tr>
 </table>
 
-<!-- <input type="submit " value="Submit"> -->
+
 
 <button onclick="addNewItem() ">Add to List</button>
 <button onclick="removeSelectedRows() ">Remove Selected</button>
 <button onclick="showSelectedRows() ">Show Selected</button>
-<button onclick="saveOrder() ">Submit Form</button> {{end}}
+<button onclick="saveOrder() ">Submit Form</button>
+<button onclick="newOrder() ">New Order</button>
+
+<p/>
+
+<br> Status:<br>
+<input type="text" id="status" name="status" value="New Order">
+
+<p/> {{end}}

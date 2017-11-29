@@ -33,12 +33,12 @@ type Dish struct {
 type Order struct {
 	SystemID             bson.ObjectId `json:"id"        bson:"_id,omitempty"`
 	ID                   string        // random ID for order, yet to define algorithm
-	ClientName           string        // Client Name
 	ClientID             string        // Client ID in case they logon
+	ClientName           string        // Client Name
 	Date                 string        // Order Date
 	Time                 string        // Order Time
 	Status               string        // Open, Completed, Cancelled
-	EatMode              string        // EatIn, TakeAway, Delivery
+	foodeatplace         string        // EatIn, TakeAway, Delivery
 	DeliveryMode         string        // Internal, UberEats,
 	DeliveryFee          string        // Delivery Fee
 	DeliveryLocation     string        // Address
@@ -113,9 +113,7 @@ func APICallList(redisclient *redis.Client) []Order {
 func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado {
 
 	envirvar := new(helper.RestEnvVariables)
-	// mongodbvar := new(helper.DatabaseX)
 
-	// mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
 	// mongodbvar.APIServer = "http://localhost:1520/"
@@ -124,12 +122,12 @@ func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado 
 	resource := "/orderadd"
 
 	data := url.Values{}
+	data.Add("orderID", objectInsert.ID)
 	data.Add("orderClientID", objectInsert.ClientID)
 	data.Add("orderClientName", objectInsert.ClientName)
 	data.Add("orderDate", objectInsert.Date)
-	data.Add("orderEatMode", objectInsert.EatMode)
-	data.Add("orderDeliveryMode", objectInsert.DeliveryMode)
-	data.Add("orderDeliveryContactPhone", objectInsert.DeliveryContactPhone)
+	data.Add("orderTime", objectInsert.Time)
+	data.Add("foodeatplace", objectInsert.foodeatplace)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
@@ -137,8 +135,6 @@ func APICallAdd(redisclient *redis.Client, objectInsert Order) helper.Resultado 
 
 	body := strings.NewReader(data.Encode())
 	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
-
-	fmt.Println("resp2.Status:" + resp2.Status)
 
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
