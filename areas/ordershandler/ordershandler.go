@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	helper "restauranteweb/areas/helper"
 
@@ -94,19 +95,12 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 // Add is
 func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
-	objecttoadd := Order{}
+	defer req.Body.Close()
+	bodybyte, _ := ioutil.ReadAll(req.Body)
 
-	objecttoadd.ID = ""                                   // This is the key, must be unique
-	objecttoadd.ClientID = req.FormValue("orderClientID") // This is the key, must be unique
-	objecttoadd.ClientName = req.FormValue("orderClientName")
-	objecttoadd.Date = req.FormValue("orderDate")
-	objecttoadd.foodeatplace = req.FormValue("foodeatplace")
-
-	ret := APICallAdd(redisclient, objecttoadd)
+	ret := APICallAdd(redisclient, bodybyte)
 
 	if ret.ID != "" {
-		// http.ServeFile(httpwriter, req, "templates/success.html")
-		// http.Redirect(httpwriter, req, "/orderlist", 301)
 
 		obj := &RespAddOrder{ID: ret.ID}
 		bresp, _ := json.Marshal(obj)
@@ -114,15 +108,13 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 		fmt.Fprintf(httpwriter, string(bresp)) // write data to response
 
 	} else {
-		// http.ServeFile(httpwriter, req, "templates/error.html")
-		// http.PostForm("templates/error.html", url.Values{"key": {"Value"}, "id": {"123"}})
 
 		// create new template
 		t, _ := template.ParseFiles("templates/indextemplate.html", "templates/error.html")
 
 		items := DisplayTemplate{}
 		items.Info.Name = "Error"
-		items.Info.Message = "Order already registered. Press back to make changes and resubmit."
+		items.Info.Message = "Order already registered."
 
 		t.Execute(httpwriter, items)
 

@@ -114,8 +114,8 @@ func APICallList(redisclient *redis.Client) []Order {
 	return list
 }
 
-// APICallAdd is
-func APICallAdd(redisclient *redis.Client, objectInsert Order) RespAddOrder {
+// APICallAddX is
+func APICallAddX(redisclient *redis.Client, objectInsert Order) RespAddOrder {
 
 	envirvar := new(helper.RestEnvVariables)
 
@@ -140,6 +140,7 @@ func APICallAdd(redisclient *redis.Client, objectInsert Order) RespAddOrder {
 
 	body := strings.NewReader(data.Encode())
 	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+	// resp2, err := http.Post(urlStr, "application/json", body)
 
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
@@ -167,6 +168,52 @@ func APICallAdd(redisclient *redis.Client, objectInsert Order) RespAddOrder {
 
 	return objectback
 
+}
+
+// APICallAdd is
+func APICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
+
+	envirvar := new(helper.RestEnvVariables)
+	bodystr := string(bodybyte[:])
+
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	// mongodbvar.APIServer = "http://localhost:1520/"
+
+	apiURL := envirvar.APIAPIServerIPAddress
+	resource := "/orderadd"
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(bodystr)
+	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	defer resp2.Body.Close()
+	var objectback RespAddOrder
+
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+		var resultado = resp2.Body
+		log.Println(resultado)
+
+		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
+			log.Println(err)
+		} else {
+
+			var x = objectback.ID
+			log.Println(x)
+		}
+
+	} else {
+		emptydisplay.IsSuccessful = "N"
+
+	}
+	return objectback
 }
 
 // APICallFind is to find stuff
