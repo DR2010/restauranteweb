@@ -176,7 +176,8 @@ function saveOrder() {
         orderDate: orderDate.value,
         orderTime: orderTime.value,
         foodeatplace: foodeatplace.value,
-        status: status.value
+        status: status.value,
+        pratos: pratosselected
     });
 
     http.open("POST", url, true);
