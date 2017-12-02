@@ -120,15 +120,26 @@ function removeSelectedRows() {
 function saveOrder() {
 
     var orderID = document.getElementById("orderID");
-    var orderClientID = document.getElementById("orderClientID");
     var orderClientName = document.getElementById("orderClientName");
     var orderDate = document.getElementById("orderDate");
     var orderTime = document.getElementById("orderTime");
     var foodeatplace = document.getElementById("foodeatplace");
     var status = document.getElementById("status");
 
+
+    if (orderID.value != "") {
+        status.value = "Order already placed!"
+        return
+    }
+
     var oTable = document.getElementById('myTable');
     var rowLength = oTable.rows.length;
+
+    if (rowLength == 1) {
+        status.value = "Please add items!"
+        return
+    }
+
 
     var pratosselected = new Array();
 
@@ -171,7 +182,6 @@ function saveOrder() {
 
     var paramsjson = JSON.stringify({
         orderID: orderID.value,
-        orderClientID: orderClientID.value,
         orderClientName: orderClientName.value,
         orderDate: orderDate.value,
         orderTime: orderTime.value,
@@ -208,4 +218,33 @@ function saveOrder() {
 function backToList() {
 
     window.location.replace("/orderlist");
+}
+
+function pad(num, size) {
+    return ('000000000' + num).substr(-size);
+}
+
+function getdatetime() {
+    var date = document.getElementById("orderDate");
+    var time = document.getElementById("orderTime");
+
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+    var hh = pad(today.getHours(), 2);
+    var min = pad(today.getMinutes(), 2);
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+        dd = '0' + dd;
+    }
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
+    var today = yyyy + '-' + mm + '-' + dd;
+    date.value = today;
+
+    var hour = hh + ':' + min
+    time.value = hour;
+
 }

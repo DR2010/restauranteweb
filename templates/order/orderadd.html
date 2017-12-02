@@ -2,16 +2,14 @@
 
 <h1>Add Order</h1>
 
-<br>Order ID:<br>
+<br>Order Number:<br>
 <input type="text" id="orderID" name="orderID" readonly>
-<br>Order Client ID:<br>
-<input type="text" id="orderClientID" name="orderClientID" required>
-<br>Full Name:<br>
-<input type="text" id="orderClientName" name="orderClientName" required>
-<br> Order date:<br>
-<input type="text" id="orderDate" name="orderDate" value="25-10-2017" readonly>
-<br> Order time:<br>
-<input type="text" id="orderTime" name="orderTime" value="8pm" readonly>
+<br>Name:<br>
+<input type="text" id="orderClientName" name="orderClientName" onchange="getdatetime()" required>
+<br>Date:<br>
+<input type="date" id="orderDate" name="orderDate" readonly>
+<br>Time:<br>
+<input type="text" id="orderTime" name="orderTime" readonly>
 
 <br> Delivery, Pick-up or Eat-in:<br>
 <select name="foodeatplace" id="foodeatplace">
