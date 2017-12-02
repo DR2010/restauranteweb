@@ -333,3 +333,43 @@ func APICallDeleteMany(redisclient *redis.Client, dishestodelete []string) helpe
 
 	return emptydisplay
 }
+
+// ListDishes works
+func Listdishes(redisclient *redis.Client) []Dish {
+
+	var apiserver string
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/dishlist"
+
+	// urlrequest = "http://localhost:1520/dishlist"
+
+	url := fmt.Sprintf(urlrequest)
+
+	var emptydisplay []Dish
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	var dishlist []Dish
+
+	if err := json.NewDecoder(resp.Body).Decode(&dishlist); err != nil {
+		log.Println(err)
+	}
+
+	return dishlist
+}

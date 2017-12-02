@@ -204,7 +204,7 @@ func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 }
 
 func orderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
-	ordershandler.LoadDisplayForAdd(httpwriter)
+	ordershandler.LoadDisplayForAdd(httpwriter, redisclient)
 }
 
 func orderadd(httpwriter http.ResponseWriter, req *http.Request) {

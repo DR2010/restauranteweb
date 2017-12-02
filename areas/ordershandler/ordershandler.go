@@ -35,6 +35,7 @@ type DisplayTemplate struct {
 	FieldNames []string
 	Rows       []Row
 	Orders     []Order
+	Pratos     []Dish
 }
 
 var mongodbvar helper.DatabaseX
@@ -84,13 +85,26 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 }
 
 // LoadDisplayForAdd is X
-func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
+func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
 	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/order/orderadd.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Order Add"
+
+	// Retrieve list of dishes by calling API to get dishes
+	//
+	var dishlist = Listdishes(redisclient)
+
+	// Set rows to be displayed
+	items.Pratos = make([]Dish, len(dishlist))
+
+	for i := 0; i < len(dishlist); i++ {
+		items.Pratos[i] = Dish{}
+		items.Pratos[i].Name = dishlist[i].Name
+		items.Pratos[i].Price = dishlist[i].Price
+	}
 
 	t.Execute(httpwriter, items)
 

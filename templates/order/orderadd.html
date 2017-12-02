@@ -21,11 +21,9 @@
 <h2>Select Dish, Click Add:</h2>
 <br>Dish:<br>
 <select name="pratoname" id="pratoname">
-            <option value="Coxinha">Coxinha</option>
-            <option value="BolodeCenoura">Bolo de Cenoura</option>
-            <option value="Refrigerante">Refrigerante</option>
-            <option value="BolodeAipim">Bolo de Aipim</option>
-            <option value="PasteldeQueijo">Pastel de Queijo</option>
+        {{range .Pratos }}
+            <option value={{.Name}}>{{ .Name }}</option>
+        {{end}}
             <option value="Brigadeiro">Brigadeiro</option>
         </select>
 <br>Qty:<br>
@@ -45,7 +43,6 @@
 
 <button onclick="addNewItem() ">Add</button>
 <button onclick="removeSelectedRows() ">Remove Item</button>
-<button onclick="saveOrder() ">Submit</button>
 <button onclick="newOrder() ">New Order</button>
 
 <table id="myTable" class="table table-striped table-bordered">
@@ -56,6 +53,7 @@
         <th>Price</th>
     </tr>
 </table>
+<button onclick="saveOrder() ">Place Order</button>
 
 <p/>
 
