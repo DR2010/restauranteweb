@@ -402,5 +402,3 @@ func dishupdateTBD(redisclient *redis.Client, httpwriter http.ResponseWriter, re
 		return
 	}
 }
-
-

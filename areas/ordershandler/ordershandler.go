@@ -73,7 +73,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 		items.Rows[i].Description[0] = list[i].ID
 		items.Rows[i].Description[1] = list[i].ClientName
 		items.Rows[i].Description[2] = list[i].Date
-		items.Rows[i].Description[3] = list[i].DeliveryMode
+		items.Rows[i].Description[3] = list[i].Foodeatplace
 	}
 
 	t.Execute(httpwriter, items)
@@ -90,6 +90,55 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 
 	t.Execute(httpwriter, items)
 
+}
+
+// LoadDisplayForView is
+func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+
+	httprequest.ParseForm()
+
+	// Get all selected records
+	orderselected := httprequest.Form["dishes"]
+
+	var numrecsel = len(orderselected)
+
+	if numrecsel <= 0 {
+		http.Redirect(httpwriter, httprequest, "/orderlist", 301)
+		return
+	}
+
+	type ControllerInfo struct {
+		Name    string
+		Message string
+	}
+	type Row struct {
+		Description []string
+	}
+	type DisplayTemplate struct {
+		Info       ControllerInfo
+		FieldNames []string
+		Rows       []Row
+		OrderItem  Order
+	}
+
+	// create new template
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/order/orderview.html")
+
+	items := DisplayTemplate{}
+	items.Info.Name = "Order View"
+
+	items.OrderItem = Order{}
+	items.OrderItem.ID = orderselected[0]
+
+	var orderfind = Order{}
+	var ordername = items.OrderItem.ID
+
+	orderfind = FindAPI(redisclient, ordername)
+	items.OrderItem = orderfind
+
+	t.Execute(httpwriter, items)
+
+	return
 }
 
 // Add is

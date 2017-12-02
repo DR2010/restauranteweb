@@ -211,6 +211,10 @@ func orderadd(httpwriter http.ResponseWriter, req *http.Request) {
 	ordershandler.Add(httpwriter, req, redisclient)
 }
 
+func orderviewdisplay(httpwriter http.ResponseWriter, req *http.Request) {
+	ordershandler.LoadDisplayForView(httpwriter, req, redisclient)
+}
+
 // ----------------------------------------------------------
 // Dishes section
 // ----------------------------------------------------------
