@@ -1,0 +1,42 @@
+{{ define "listtemplate" }}
+<form action="Submit" method="POST" />
+<meta http-equiv="refresh" content="30">
+<h2>{{ .Info.Name }} </h2>
+<div id="header" class="navbar navbar-fixed-right">
+    <button type="submit" formaction="/orderadddisplay" value="Add">Add Order</button>
+</div>
+<div style="float:left;" class="table-responsive">
+    <p>
+        <table class="table table-striped table-bordered">
+            <tr>
+                <th><b>Order ID</b></th>
+                <th><b>Name</b></th>
+                <th><b>Date</b></th>
+                <th><b>Eat In</b></th>
+            </tr>
+            {{range .Orders }}
+            <tr>
+                <td>
+                    <a href="/orderviewdisplay?orderid={{ .ID }}">{{ .ID }}</a>
+                </td>
+                <td>
+                    {{ .ClientName }}
+                </td>
+                <td>
+                    {{ .Date }}
+                </td>
+                <td>
+                    {{ .Time }}
+                </td>
+            </tr>
+            {{end}}
+
+        </table>
+    </p>
+    <p/>
+    <div id="footer" class="navbar navbar-fixed-right">
+        <button type="submit" formaction="/orderadddisplay" value="Add">Add Order</button>
+    </div>
+</div>
+</form>
+{{end}}

@@ -73,5 +73,6 @@ var routes = Routes{
 	Route{"orderlist", "GET", "/orderlist", orderlist},
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
 	Route{"orderadd", "POST", "/orderadd", orderadd},
-	Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
+	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
+	// Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
 }

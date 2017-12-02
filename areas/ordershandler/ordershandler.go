@@ -34,6 +34,7 @@ type DisplayTemplate struct {
 	Info       ControllerInfo
 	FieldNames []string
 	Rows       []Row
+	Orders     []Order
 }
 
 var mongodbvar helper.DatabaseX
@@ -43,7 +44,7 @@ var mongodbvar helper.DatabaseX
 func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
+	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/orderlisttemplate.html")
 
 	// Get list of orders (api call)
 	//
@@ -65,6 +66,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// Set rows to be displayed
 	items.Rows = make([]Row, len(list))
+	items.Orders = make([]Order, len(list))
 	// items.RowID = make([]int, len(dishlist))
 
 	for i := 0; i < len(list); i++ {
@@ -74,6 +76,8 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 		items.Rows[i].Description[1] = list[i].ClientName
 		items.Rows[i].Description[2] = list[i].Date
 		items.Rows[i].Description[3] = list[i].Foodeatplace
+
+		items.Orders[i] = list[i]
 	}
 
 	t.Execute(httpwriter, items)
@@ -100,11 +104,17 @@ func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Reques
 	// Get all selected records
 	orderselected := httprequest.Form["dishes"]
 
-	var numrecsel = len(orderselected)
+	orderid := httprequest.URL.Query().Get("orderid")
 
-	if numrecsel <= 0 {
-		http.Redirect(httpwriter, httprequest, "/orderlist", 301)
-		return
+	if orderid == "" {
+		var numrecsel = len(orderselected)
+
+		if numrecsel <= 0 {
+			http.Redirect(httpwriter, httprequest, "/orderlist", 301)
+			return
+		}
+
+		orderid = orderselected[0]
 	}
 
 	type ControllerInfo struct {
@@ -128,7 +138,8 @@ func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Reques
 	items.Info.Name = "Order View"
 
 	items.OrderItem = Order{}
-	items.OrderItem.ID = orderselected[0]
+	items.OrderItem.ID = orderid
+	// items.OrderItem.ID = orderselected[0]
 
 	var orderfind = Order{}
 	var ordername = items.OrderItem.ID

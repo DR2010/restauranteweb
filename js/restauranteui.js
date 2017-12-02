@@ -126,6 +126,12 @@ function saveOrder() {
     var foodeatplace = document.getElementById("foodeatplace");
     var status = document.getElementById("status");
 
+    if (orderClientName.value == "") {
+        status.value = "Order name is mandatory!"
+        orderClientName.focus();
+        return
+    }
+
 
     if (orderID.value != "") {
         status.value = "Order already placed!"
