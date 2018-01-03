@@ -18,6 +18,28 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// Order is to be
+type Order struct {
+	SystemID   bson.ObjectId `json:"id"        bson:"_id,omitempty"`
+	ID         string        // random ID for order, yet to define algorithm
+	ClientName string        // Client Name
+	ClientID   string        // Client ID in case they logon
+	Atendente  string        // Pessoa atendendo
+	Date       string        // Order Date
+	Time       string        // Order Time
+	Status     string        // Open, Completed, Cancelled
+	EatMode    string        // EatIn, TakeAway, Delivery
+	TotalGeral string        // Delivery phone number
+	Items      []Item
+}
+
+// BTCCoin is to be
+type BTCCoin struct {
+	balance      string // balance
+	pendingFunds string // pend
+	currency     string // curren
+}
+
 // Dish is to be exported
 type Dish struct {
 	SystemID   bson.ObjectId `json:"id"        bson:"_id,omitempty"`
@@ -27,20 +49,6 @@ type Dish struct {
 	GlutenFree string        // Gluten free dishes
 	DairyFree  string        // Dairy Free dishes
 	Vegetarian string        // Vegeterian dishes
-}
-
-type Order struct {
-	SystemID     bson.ObjectId `json:"id"        bson:"_id,omitempty"`
-	ID           string        // random ID for order, yet to define algorithm
-	ClientName   string        // Client Name
-	ClientID     string        // Client ID in case they logon
-	Date         string        // Order Date
-	Time         string        // Order Time
-	Status       string        // Open, Completed, Cancelled
-	EatMode      string        // EatIn, TakeAway, Delivery
-	Foodeatplace string        // EatIn, TakeAway, Delivery
-	TotalGeral   string        // Delivery phone number
-	Items        []Item
 }
 
 // Item represents a single item of an order
@@ -123,6 +131,7 @@ func APICallList(redisclient *redis.Client) []Order {
 
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 	urlrequest := apiserver + "/orderlist"
+
 	url := fmt.Sprintf(urlrequest)
 
 	// Build the request
@@ -372,4 +381,44 @@ func Listdishes(redisclient *redis.Client) []Dish {
 	}
 
 	return dishlist
+}
+
+// APIBTCMarketsList works
+func APIBTCMarketsList(redisclient *redis.Client) []BTCCoin {
+
+	var apiserver string
+	var emptydisplay []BTCCoin
+
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	urlrequest := apiserver + "/orderlist"
+
+	urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets"
+
+	url := fmt.Sprintf(urlrequest)
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	// return list of orders
+	var list []BTCCoin
+
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		log.Println(err)
+	}
+
+	return list
 }

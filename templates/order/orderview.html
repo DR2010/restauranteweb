@@ -2,7 +2,7 @@
 
 <h1>View Order</h1>
 
-<br>Order ID:<br>
+<br>Order Number:<br>
 <input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }}" readonly>
 <p/>
 <br>Full Name:<br>
@@ -19,11 +19,11 @@
 <p/>
 
 <br> Delivery, Pick-up or Eat-in:<br>
-<select name="foodeatplace" id="foodeatplace" value="{{ .OrderItem.Foodeatplace }}">
-            <option value="Delivery">Delivery</option>
-            <option value="Eatin">Eat-in</option>
-            <option value="Takeaway">Take away</option>
-        </select>
+<select name="EatMode" id="EatMode" value="{{ .OrderItem.EatMode }}">
+    <option value="Eatin">Eat-in</option>
+    <option value="Delivery">Delivery</option>
+    <option value="Takeaway">Take away</option>
+</select>
 <br>
 
 <p/>

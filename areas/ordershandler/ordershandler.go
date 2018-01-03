@@ -56,14 +56,15 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	items := DisplayTemplate{}
 	items.Info.Name = "Order List"
 
-	var numberoffields = 4
+	var numberoffields = 5
 
 	// Set colum names
 	items.FieldNames = make([]string, numberoffields)
 	items.FieldNames[0] = "Order ID"
 	items.FieldNames[1] = "Name"
 	items.FieldNames[2] = "Date"
-	items.FieldNames[3] = "Mode"
+	items.FieldNames[3] = "Status"
+	items.FieldNames[4] = "Mode"
 
 	// Set rows to be displayed
 	items.Rows = make([]Row, len(list))
@@ -76,7 +77,8 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 		items.Rows[i].Description[0] = list[i].ID
 		items.Rows[i].Description[1] = list[i].ClientName
 		items.Rows[i].Description[2] = list[i].Date
-		items.Rows[i].Description[3] = list[i].Foodeatplace
+		items.Rows[i].Description[3] = list[i].Status
+		items.Rows[i].Description[4] = list[i].EatMode
 
 		items.Orders[i] = list[i]
 	}

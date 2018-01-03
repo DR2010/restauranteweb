@@ -4,27 +4,29 @@
 
 <br>Order Number:<br>
 <input type="text" id="orderID" name="orderID" readonly>
-<br>Name:<br>
-<input type="text" id="orderClientName" name="orderClientName" onchange="getdatetime()" required>
+<br>Full Name:<br>
+<input type="text" id="orderClientName" name="orderClientName" value="" onchange="getdatetime()" required>
 <br>Date:<br>
-<input type="date" id="orderDate" name="orderDate" readonly>
+<input type="date" id="orderDate" name="orderDate" value="" readonly>
 <br>Time:<br>
-<input type="text" id="orderTime" name="orderTime" readonly>
+<input type="text" id="orderTime" name="orderTime" value="" readonly>
+<br> Status:<br>
+<input type="text" id="status" name="status" value="Not Placed">
 
 <br> Delivery, Pick-up or Eat-in:<br>
-<select name="foodeatplace" id="foodeatplace">
-            <option value="Delivery">Delivery</option>
-            <option value="Eatin">Eat-in</option>
-            <option value="Takeaway">Take away</option>
-        </select>
+<select name="EatMode" id="EatMode" value="Eatin">
+    <option value="Eatin">Eat-in</option>
+    <option value="Delivery">Delivery</option>
+    <option value="Takeaway">Take away</option>
+</select>
 <br>
+
 <h2>Select Dish, Click Add:</h2>
 <br>Dish:<br>
 <select name="pratoname" id="pratoname">
         {{range .Pratos }}
             <option value={{.Name}}>{{ .Name }}</option>
         {{end}}
-            <option value="Brigadeiro">Brigadeiro</option>
         </select>
 <br>Qty:<br>
 <select name="pratoqtd" id="pratoqtd">
@@ -57,7 +59,7 @@
 
 <p/>
 
-<br> Status:<br>
-<input type="text" id="status" name="status" value="New Order">
+<br> Message:<br>
+<input type="text" id="message" name="message" value="">
 
 <p/> {{end}}

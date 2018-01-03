@@ -10,10 +10,12 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"restauranteweb/areas/btcmarketshandler"
 	cachehandler "restauranteweb/areas/cachehandler"
 	disheshandler "restauranteweb/areas/disheshandler"
 	helper "restauranteweb/areas/helper"
 	"restauranteweb/areas/ordershandler"
+	security "restauranteweb/areas/security"
 
 	"github.com/go-redis/redis"
 	// _ "github.com/go-sql-driver/mysql"
@@ -50,6 +52,18 @@ func main() {
 
 	loadreferencedatainredis()
 
+	// Read variables from server
+	//
+	envirvar := new(helper.RestEnvVariables)
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	envirvar.APIAPIServerPort, _ = redisclient.Get("Web.APIServer.Port").Result()
+	envirvar.WEBServerPort, _ = redisclient.Get("WEBServerPort").Result()
+	envirvar.WEBDebug, _ = redisclient.Get("Web.Debug").Result()
+	envirvar.RecordCurrencyTick, _ = redisclient.Get("RecordCurrencyTick").Result()
+	envirvar.RunningFromServer, _ = redisclient.Get("RunningFromServer").Result()
+
+	btcmarketshandler.SendEmail(redisclient, "StartingSystemNow"+envirvar.RunningFromServer)
+
 	fmt.Println(">>> Web Server: restauranteweb.exe running.")
 	fmt.Println("Loading reference data in cache - Redis")
 
@@ -58,10 +72,8 @@ func main() {
 	// mongodbvar.APIServer = "http://192.168.2.180:1520/"
 	// mongodbvar.APIServer = "http://localhost:1520/"
 
-	fmt.Println("Running... Listening to :1515 - print")
-	fmt.Println("MongoDB location: " + mongodbvar.Location)
-	fmt.Println("MongoDB database: " + mongodbvar.Database)
-	fmt.Println("API Server: " + mongodbvar.APIServer)
+	fmt.Println("Running... Web Server Listening to :" + envirvar.WEBServerPort)
+	fmt.Println("API Server: " + envirvar.APIAPIServerIPAddress + " Port: " + envirvar.APIAPIServerPort)
 
 	router := XNewRouter()
 
@@ -75,7 +87,8 @@ func main() {
 	http.Handle("/css/", http.StripPrefix("/css", http.FileServer(http.Dir("./css"))))
 	http.Handle("/fonts/", http.StripPrefix("/fonts", http.FileServer(http.Dir("./fonts"))))
 
-	err := http.ListenAndServe(":1515", nil) // setting listening port
+	err := http.ListenAndServe(":1510", nil) // setting listening port
+	// err := http.ListenAndServe(envirvar.WEBServerPort, nil) // setting listening port
 	if err != nil {
 		//using the mux router
 		log.Fatal("ListenAndServe: ", err)
@@ -100,9 +113,12 @@ func loadreferencedatainredis() {
 	variable := helper.Readfileintostruct()
 	err = redisclient.Set("Web.MongoDB.Database", variable.APIMongoDBDatabase, 0).Err()
 	err = redisclient.Set("Web.APIServer.Port", variable.APIAPIServerPort, 0).Err()
+	err = redisclient.Set("WEBServerPort", variable.WEBServerPort, 0).Err()
 	err = redisclient.Set("Web.MongoDB.Location", variable.APIMongoDBLocation, 0).Err()
 	err = redisclient.Set("Web.APIServer.IPAddress", variable.APIAPIServerIPAddress, 0).Err()
 	err = redisclient.Set("Web.Debug", variable.WEBDebug, 0).Err()
+	err = redisclient.Set("RecordCurrencyTick", variable.RecordCurrencyTick, 0).Err()
+	err = redisclient.Set("RunningFromServer", variable.RunningFromServer, 0).Err()
 
 }
 
@@ -129,6 +145,36 @@ func root2(httpwriter http.ResponseWriter, r *http.Request) {
 }
 
 func signupPage(res http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.ServeFile(res, req, "templates/signup.html")
+
+		return
+	}
+
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+	passwordvalidate := req.FormValue("passwordvalidate")
+
+	if password == passwordvalidate {
+
+		// Call API to check if user exists and create
+		var resultado = security.SignUp(redisclient, username, password, passwordvalidate)
+		if resultado.ErrorCode == "200 OK" {
+
+		} else {
+			http.Error(res, "Server error, unable to create your account.", 500)
+			return
+		}
+
+		http.Redirect(res, req, "/", 301)
+	} else {
+		http.Error(res, "Passwords do not match.", 500)
+		return
+	}
+
+}
+
+func signupPageOLD(res http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.ServeFile(res, req, "templates/signup.html")
 
@@ -167,6 +213,40 @@ func signupPage(res http.ResponseWriter, req *http.Request) {
 }
 
 func loginPage(res http.ResponseWriter, req *http.Request) {
+
+	if req.Method != "POST" {
+		http.ServeFile(res, req, "templates/login.html")
+		return
+	}
+
+	username := req.FormValue("username")
+	password := req.FormValue("password")
+
+	var databaseUsername string
+	var databasePassword string
+
+	// Check if the user is valid and issue reference token
+	//
+	security.LoginUser(redisclient, username, password)
+
+	err := db.QueryRow("SELECT username, password FROM users WHERE username=?", username).Scan(&databaseUsername, &databasePassword)
+
+	if err != nil {
+		http.Redirect(res, req, "/loginPage", 301)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(databasePassword), []byte(password))
+	if err != nil {
+		http.Redirect(res, req, "/loginPage", 301)
+		return
+	}
+
+	res.Write([]byte("Hello" + databaseUsername))
+
+}
+
+func loginPageOLD(res http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.ServeFile(res, req, "templates/login.html")
 		return
@@ -200,7 +280,12 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 // ----------------------------------------------------------
 
 func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
-	ordershandler.List(httpwriter, redisclient)
+
+	if security.ValidateToken(redisclient, "Daniel", "sometoken") == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 301)
+	} else {
+		ordershandler.List(httpwriter, redisclient)
+	}
 }
 
 func orderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -213,6 +298,54 @@ func orderadd(httpwriter http.ResponseWriter, req *http.Request) {
 
 func orderviewdisplay(httpwriter http.ResponseWriter, req *http.Request) {
 	ordershandler.LoadDisplayForView(httpwriter, req, redisclient)
+}
+
+// ----------------------------------------------------------
+// BTC Markets section
+// ----------------------------------------------------------
+
+func btcmarketslistV1(httpwriter http.ResponseWriter, req *http.Request) {
+	// var listofbit = btcmarketshandler.List(httpwriter, redisclient)
+	btcmarketshandler.List(httpwriter, redisclient)
+
+	// btcmarketshandler.Add(listofbit, redisclient)
+}
+
+// This is V2 - activated on 11:54AM 01-Jan-2018
+// This version logs the rates every minute
+func btcmarketslistV2(httpwriter http.ResponseWriter, req *http.Request) {
+	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
+
+	btcmarketshandler.Add(listofbit, redisclient)
+}
+
+func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
+
+	envirvar := new(helper.RestEnvVariables)
+	envirvar.RecordCurrencyTick, _ = redisclient.Get("RecordCurrencyTick").Result()
+
+	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
+
+	if envirvar.RecordCurrencyTick == "Y" {
+		btcmarketshandler.Add(listofbit, redisclient)
+	}
+}
+
+func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
+
+	params := req.URL.Query()
+	var currency = params.Get("currency")
+	if currency == "" {
+		currency = "ALL"
+	}
+
+	var rows = params.Get("rows")
+	if rows == "" {
+		rows = "1440"
+	}
+
+	btcmarketshandler.HListHistory(httpwriter, redisclient, currency, rows)
+
 }
 
 // ----------------------------------------------------------
@@ -370,7 +503,6 @@ func errorpage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 
 	{{end}}
 	`
-
 	t, _ := template.ParseFiles("templates/error.html")
 	t, _ = t.Parse(listtemplate)
 

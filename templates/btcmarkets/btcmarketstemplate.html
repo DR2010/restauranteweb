@@ -1,0 +1,62 @@
+{{ define "basictemplate" }}
+<form action="Submit" method="POST" />
+<meta http-equiv="refresh" content="300">
+<h2>{{ .Info.Currency }} - {{ .Info.Name }} </h2>
+<p id="date"></p><br>
+    <!-- {{if eq .Info.Currency "SUMMARY" }}
+    <input id="clickMe" type="button" value="50" onclick="showlinechart();" /> <p/> {{end}}  -->
+    {{if eq .Info.Currency "SUMMARY" }}
+    {{ else }}
+    <p/>
+    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=50" class="btn btn-md btn-success ">50</a>
+    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=100" class="btn btn-md btn-success ">100</a>
+    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=1000" class="btn btn-md btn-success ">1000</a>
+    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=2000" class="btn btn-md btn-success ">2000</a>
+    {{ end }}
+
+<div style="float:left;" class="table-responsive">
+
+    {{if eq .Info.Name "Market Value - History" }}
+    <canvas id="myChart" width="400" height="400"></canvas> {{end}}
+
+    <p>
+        <table id=tablecotacao name=tablecotacao class="table table-striped table-bordered">
+            <tr>
+                <th><b>Currency</b></th>
+                <th><b>Balance</b></th>
+                <th><b>Cotacao</b></th>
+                <th><b>Valor AUD</b></th>
+                <th><b>Date Time</b></th>
+            </tr>
+            {{range .Btccoin }}
+            <tr>
+                <td>
+                    <a href="/btcmarketshistorylist?currency={{ .Currency }}">{{ .Currency }}</a>
+                </td>
+                <td>
+                    {{ .Balance }}
+                </td>
+                <td>
+                    {{ .CotacaoAtual }}
+                </td>
+                <td>
+                    {{ .ValueInCashAUD }}
+                </td>
+                <td>
+                    {{ .DateTime }}
+                </td>
+            </tr>
+            {{end}}
+
+        </table>
+    </p>
+
+
+    <p/>
+
+
+
+</div>
+
+</form>
+{{end}}

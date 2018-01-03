@@ -1,5 +1,11 @@
 var prato
 
+function danielonload() {
+    document.getElementById("date").innerHTML = "Date: " + getdatetimer();
+
+    showlinechart();
+}
+
 // --------------------------------------
 //    Load Prices in Memory or Cache
 // --------------------------------------
@@ -50,20 +56,20 @@ function addNewItem() {
 function newOrder() {
 
     var orderID = document.getElementById("orderID");
-    var orderClientID = document.getElementById("orderClientID");
     var orderClientName = document.getElementById("orderClientName");
     var orderDate = document.getElementById("orderDate");
     var orderTime = document.getElementById("orderTime");
-    var foodeatplace = document.getElementById("foodeatplace");
+    var eatmode = document.getElementById("EatMode");
     var status = document.getElementById("status");
+    var message = document.getElementById("message");
 
     orderID.value = "";
-    orderClientID.value = "";
     orderClientName.value = "";
-    orderDate.value = "";
+    orderDate.value = getdate();
     orderTime.value = "";
-    foodeatplace.value = "";
-    status.value = "New Order.";
+    eatmode.value = "Eatin";
+    status.value = "New Order";
+    message.value = "Place new order";
 
 }
 
@@ -123,18 +129,19 @@ function saveOrder() {
     var orderClientName = document.getElementById("orderClientName");
     var orderDate = document.getElementById("orderDate");
     var orderTime = document.getElementById("orderTime");
-    var foodeatplace = document.getElementById("foodeatplace");
+    var eatmode = document.getElementById("EatMode");
     var status = document.getElementById("status");
+    var message = document.getElementById("message");
 
     if (orderClientName.value == "") {
-        status.value = "Order name is mandatory!"
+        message.value = "Order name is mandatory!"
         orderClientName.focus();
         return
     }
 
 
     if (orderID.value != "") {
-        status.value = "Order already placed!"
+        message.value = "Order already placed!"
         return
     }
 
@@ -142,7 +149,7 @@ function saveOrder() {
     var rowLength = oTable.rows.length;
 
     if (rowLength == 1) {
-        status.value = "Please add items!"
+        message.value = "Please add items!"
         return
     }
 
@@ -186,12 +193,14 @@ function saveOrder() {
     var http = new XMLHttpRequest();
     var url = "/orderadd";
 
+    status.value = "Placed";
+
     var paramsjson = JSON.stringify({
         orderID: orderID.value,
         orderClientName: orderClientName.value,
         orderDate: orderDate.value,
         orderTime: orderTime.value,
-        foodeatplace: foodeatplace.value,
+        eatmode: eatmode.value,
         status: status.value,
         pratos: pratosselected
     });
@@ -204,7 +213,8 @@ function saveOrder() {
     http.onreadystatechange = function() { //Call a function when the state changes.
         if (http.readyState == 4 && http.status == 200) {
             console.log(http.responseText);
-            status.value = "Order placed successfully."
+            message.value = "Order placed successfully."
+            status.value = "Placed"
 
             var json_data = http.responseText;
 
@@ -250,7 +260,166 @@ function getdatetime() {
     var today = yyyy + '-' + mm + '-' + dd;
     date.value = today;
 
-    var hour = hh + ':' + min
+    var hour = hh + ':' + min;
     time.value = hour;
+
+}
+
+function getdate() {
+
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+    var hh = pad(today.getHours(), 2);
+    var min = pad(today.getMinutes(), 2);
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+        dd = '0' + dd;
+    }
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
+    var today = yyyy + '-' + mm + '-' + dd;
+
+    return today
+
+}
+
+function getdatetimer() {
+
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth() + 1; //January is 0!
+    var hh = pad(today.getHours(), 2);
+    var min = pad(today.getMinutes(), 2);
+
+    var yyyy = today.getFullYear();
+    if (dd < 10) {
+        dd = '0' + dd;
+    }
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
+    var today = yyyy + '-' + mm + '-' + dd + ' ~ ' + hh + ':' + min;
+
+    return today
+
+}
+
+
+
+function showchart() {
+    var ctx = document.getElementById("myChart").getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+}
+
+function showlinechart() {
+    showanychart('line');
+}
+
+function showbarchart() {
+    showanychart('bar');
+}
+
+function showanychart(chartype) {
+
+    var theTbl = document.getElementById('tablecotacao');
+    var arr = [];
+    var labellist = [];
+
+    // for (var i = 1; i < theTbl.rows.length; i++) {
+    var st = theTbl.rows.length - 1;
+    for (var i = st; i >= 1; i--) {
+        // for (var i = 1; i < theTbl.rows.length; i++) {
+
+        var value = theTbl.rows[i].cells[4].innerHTML;
+        var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(62, 3);
+
+        if (valuecol0 == "ALL") {
+            arr.push(Number(theTbl.rows[i].cells[3].innerHTML));
+        } else {
+            arr.push(Number(theTbl.rows[i].cells[2].innerHTML));
+        }
+
+        labellist.push(value.substr(32, 5));
+    }
+
+    showchartline(arr, labellist, chartype);
+}
+
+function showchartline(datalist, labellist, chartype) {
+
+    var ctx = document.getElementById("myChart").getContext('2d');
+
+    var myChart = new Chart(ctx, {
+        type: chartype,
+        data: {
+            labels: labellist,
+            datasets: [{
+                label: 'Cotacao',
+                data: datalist,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {}
+                }]
+            }
+        }
+    });
 
 }

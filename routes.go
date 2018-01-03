@@ -59,7 +59,10 @@ func XNewRouter() *mux.Router {
 var routes = Routes{
 	Route{"Index", "GET", "/", root},
 	Route{"login", "GET", "/login", loginPage},
+	Route{"login", "POST", "/login", loginPage},
+	Route{"errorpage", "GET", "/login", errorpage},
 	Route{"signup", "GET", "/signup", signupPage},
+	Route{"signup", "POST", "/signup", signupPage},
 	Route{"dishlist", "GET", "/dishlist", dishlist},
 	Route{"dishadddisplay", "POST", "/dishadddisplay", dishadddisplay},
 	Route{"dishupdatedisplay", "POST", "/dishupdatedisplay", dishupdatedisplay},
@@ -74,5 +77,7 @@ var routes = Routes{
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
 	Route{"orderadd", "POST", "/orderadd", orderadd},
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
+	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},
+	Route{"btcmarketshistorylist", "GET", "/btcmarketshistorylist", btclistcoinshistory},
 	// Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
 }

@@ -12,6 +12,7 @@
                 <th><b>Order ID</b></th>
                 <th><b>Name</b></th>
                 <th><b>Date</b></th>
+                <th><b>Status</b></th>
                 <th><b>Eat In</b></th>
             </tr>
             {{range .Orders }}
@@ -26,9 +27,12 @@
                     {{ .Date }}
                 </td>
                 <td>
-                    {{ .Time }}
+                    {{ .Status }}
                 </td>
-            </tr>
+                <td>
+                    {{ .EatMode }}
+                </td>
+                </tr>
             {{end}}
 
         </table>
