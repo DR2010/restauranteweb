@@ -93,6 +93,7 @@ func main() {
 		//using the mux router
 		log.Fatal("ListenAndServe: ", err)
 	}
+
 }
 
 func loadreferencedatainredis() {
@@ -212,37 +213,43 @@ func signupPageOLD(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func loginPage(res http.ResponseWriter, req *http.Request) {
+func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
 
-	if req.Method != "POST" {
-		http.ServeFile(res, req, "templates/login.html")
+	if httprequest.Method != "POST" {
+		http.ServeFile(httpresponsewriter, httprequest, "templates/login.html")
 		return
 	}
 
-	username := req.FormValue("username")
-	password := req.FormValue("password")
+	// res httpresponsewriter
+	// req httprequest
 
-	var databaseUsername string
-	var databasePassword string
+	username := httprequest.FormValue("username")
+	password := httprequest.FormValue("password")
 
 	// Check if the user is valid and issue reference token
 	//
-	security.LoginUser(redisclient, username, password)
+	var resultado = security.LoginUser(redisclient, username, password)
 
-	err := db.QueryRow("SELECT username, password FROM users WHERE username=?", username).Scan(&databaseUsername, &databasePassword)
-
-	if err != nil {
-		http.Redirect(res, req, "/loginPage", 301)
+	if resultado.ErrorCode == "404 Error" {
+		http.Redirect(httpresponsewriter, httprequest, "/loginPage", 301)
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(databasePassword), []byte(password))
-	if err != nil {
-		http.Redirect(res, req, "/loginPage", 301)
-		return
-	}
+	// Store token somewhere in desktop
+	// Thinking of only using API Key
+	// The logon has to exist, but should not call an API instead access the database
+	// However we should also allow the API key to access
 
-	res.Write([]byte("Hello" + databaseUsername))
+	// At this point store the token somewhere, cookie or browser storage
+
+	c := http.Cookie{
+		Name:  "DanBTCjwt",
+		Value: resultado.ReturnedValue,
+	}
+	http.SetCookie(httpresponsewriter, &c)
+
+	http.Redirect(httpresponsewriter, httprequest, "/", 301)
+	return
 
 }
 
@@ -281,7 +288,9 @@ func loginPageOLD(res http.ResponseWriter, req *http.Request) {
 
 func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 
-	if security.ValidateToken(redisclient, "Daniel", "sometoken") == "NotOkToLogin" {
+	cookie, _ := req.Cookie("DanBTCjwt")
+
+	if security.ValidateToken(redisclient, "Daniel", cookie.Value) == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 301)
 	} else {
 		ordershandler.List(httpwriter, redisclient)
@@ -341,7 +350,7 @@ func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
 
 	var rows = params.Get("rows")
 	if rows == "" {
-		rows = "1440"
+		rows = "100"
 	}
 
 	btcmarketshandler.HListHistory(httpwriter, redisclient, currency, rows)

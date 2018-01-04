@@ -3,7 +3,9 @@ package security
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"log"
 	"mongodb/helper"
 	"net/http"
 	"net/url"
@@ -26,11 +28,9 @@ func LoginUser(redisclient *redis.Client, userid string, password string) helper
 	apiURL := mongodbvar.APIServer
 	resource := "/securitylogin"
 
-	var passwordhashed = Hashstring(password)
-
 	data := url.Values{}
 	data.Add("userid", userid)
-	data.Add("password", passwordhashed)
+	data.Add("password", password)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
@@ -44,24 +44,39 @@ func LoginUser(redisclient *redis.Client, userid string, password string) helper
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
 
-	if resp2.Status == "200 OK" {
-		emptydisplay.IsSuccessful = "Y"
+	defer resp2.Body.Close()
+
+	var response string
+
+	if err := json.NewDecoder(resp2.Body).Decode(&response); err != nil {
+		log.Println(err)
 	}
 
-	// Find out what to do to get a value back
-	//
-	tokenreturned := resp2.Body
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+		emptydisplay.ErrorCode = "200 OK"
+		emptydisplay.ErrorDescription = "200 OK"
+		emptydisplay.ReturnedValue = response
 
-	// Store Token in Cache
-	var jwttoken = tokenreturned
-	year, month, day := time.Now().Date()
+		// Find out what to do to get a value back
+		//
+		tokenreturned := response
 
-	var key = userid + strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
+		// Store Token in Cache
+		var jwttoken = tokenreturned
+		year, month, day := time.Now().Date()
 
-	_ = redisclient.Set(key, jwttoken, 0).Err()
+		var key = userid + strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
+
+		_ = redisclient.Set(key, jwttoken, 0).Err()
+
+	} else {
+		emptydisplay.IsSuccessful = "N"
+		emptydisplay.ErrorCode = "404 Error"
+		emptydisplay.ErrorDescription = "404 Shit happens!... and it happened!"
+	}
 
 	return emptydisplay
-
 }
 
 func SignUp(redisclient *redis.Client, userid string, password string, passwordvalidate string) helper.Resultado {
@@ -69,29 +84,42 @@ func SignUp(redisclient *redis.Client, userid string, password string, passwordv
 	mongodbvar := new(helper.DatabaseX)
 	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
+	var emptydisplay helper.Resultado
+
 	apiURL := mongodbvar.APIServer
 	resource := "/securitysignup"
 
+	if password != passwordvalidate {
+		emptydisplay.ErrorCode = "404 Error"
+		emptydisplay.ErrorDescription = "Password mismatch"
+		return emptydisplay
+	}
+
 	var passwordhashed = Hashstring(password)
 	var passwordvalidatehashed = Hashstring(passwordvalidate)
+
+	// passwordhashed, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	// passwordvalidatehashed, _ := bcrypt.GenerateFromPassword([]byte(passwordvalidate), bcrypt.DefaultCost)
+
+	// passwordhasheds := string(passwordhashed)
+	// passwordvalidatehasheds := string(passwordvalidatehashed)
 
 	data := url.Values{}
 	data.Add("userid", userid)
 	data.Add("password", passwordhashed)
 	data.Add("passwordvalidate", passwordvalidatehashed)
 
-	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String()
 
 	body := strings.NewReader(data.Encode())
+
+	// Call method here
 	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
 
 	fmt.Println("resp2.Status:" + resp2.Status)
 
-	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
 
 	if resp2.Status == "200 OK" {
