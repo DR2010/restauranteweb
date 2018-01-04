@@ -307,8 +307,6 @@ function getdatetimer() {
 
 }
 
-
-
 function showchart() {
     var ctx = document.getElementById("myChart").getContext('2d');
     var myChart = new Chart(ctx, {
@@ -421,5 +419,57 @@ function showchartline(datalist, labellist, chartype) {
             }
         }
     });
+
+}
+
+
+
+// --------------------------------------
+//          Login
+// --------------------------------------
+function login() {
+
+    var userid = document.getElementById("userid");
+    var password = document.getElementById("password");
+    var message = document.getElementById("message");
+
+    if (userid.value == "") {
+        userid.focus();
+        return
+    }
+
+    if (password.value == "") {
+        password.focus()
+        return
+    }
+
+    // Build the object - order
+    // Post to the server or call web api
+    var http = new XMLHttpRequest();
+    var url = "/login";
+
+    var paramsjson = JSON.stringify({
+        userid: userid.value,
+        password: password.value
+    });
+
+    http.open("POST", url, true);
+
+    //Send the proper header information along with the request
+    http.setRequestHeader("Content-type", "application/json");
+
+    http.onreadystatechange = function() { //Call a function when the state changes.
+        if (http.readyState == 4 && http.status == 200) {
+            console.log(http.responseText);
+            message.value = "Order placed successfully."
+
+            var json_data = http.responseText;
+            var contact = JSON.parse(json_data);
+        } else {
+            message.value = "Invalid Credentials."
+        }
+    }
+
+    http.send(paramsjson);
 
 }

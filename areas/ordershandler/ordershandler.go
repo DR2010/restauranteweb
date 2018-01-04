@@ -22,6 +22,7 @@ import (
 type ControllerInfo struct {
 	Name    string
 	Message string
+	UserID  string
 }
 
 // Row is
@@ -55,6 +56,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	//
 	items := DisplayTemplate{}
 	items.Info.Name = "Order List"
+	items.Info.UserID = "User"
 
 	var numberoffields = 5
 

@@ -23,6 +23,17 @@ type Resultado struct {
 	ErrorCode        string // error code
 	ErrorDescription string // description
 	IsSuccessful     string // Y or N
+	ReturnedValue    string
+}
+
+// Credentials is a struct
+type Credentials struct {
+	UserID   string // error code
+	UserName string // description
+	KeyJWT   string
+	JWT      string
+	Expiry   string
+	Roles    []string // Y or N
 }
 
 func add() {

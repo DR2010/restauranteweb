@@ -6,6 +6,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -16,6 +17,8 @@ import (
 	helper "restauranteweb/areas/helper"
 	"restauranteweb/areas/ordershandler"
 	security "restauranteweb/areas/security"
+	"strconv"
+	"time"
 
 	"github.com/go-redis/redis"
 	// _ "github.com/go-sql-driver/mysql"
@@ -24,6 +27,7 @@ import (
 )
 
 var mongodbvar helper.DatabaseX
+var credentials helper.Credentials
 
 var db *sql.DB
 var err error
@@ -69,6 +73,8 @@ func main() {
 
 	mongodbvar.Location = "localhost"
 	mongodbvar.Database = "restaurante"
+
+	credentials.UserID = "No User"
 	// mongodbvar.APIServer = "http://192.168.2.180:1520/"
 	// mongodbvar.APIServer = "http://localhost:1520/"
 
@@ -216,8 +222,22 @@ func signupPageOLD(res http.ResponseWriter, req *http.Request) {
 func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
 
 	if httprequest.Method != "POST" {
-		http.ServeFile(httpresponsewriter, httprequest, "templates/login.html")
+		http.ServeFile(httpresponsewriter, httprequest, "templates/security/login.html")
 		return
+	}
+
+	cookie, _ := httprequest.Cookie("DanBTCjwt")
+	if cookie != nil {
+		c := &http.Cookie{
+			Name:     "DanBTCjwt",
+			Value:    "",
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(httpresponsewriter, c)
+
 	}
 
 	// res httpresponsewriter
@@ -231,9 +251,20 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	var resultado = security.LoginUser(redisclient, username, password)
 
 	if resultado.ErrorCode == "404 Error" {
-		http.Redirect(httpresponsewriter, httprequest, "/loginPage", 301)
+		// http.Redirect(httpresponsewriter, httprequest, "/loginPage", 303)
+		// http.Error(httpresponsewriter, "Passwords do not match.", 500)
+		// return
+		// http.ServeFile(httpresponsewriter, httprequest, "templates/security/login.html")
+		// message := httprequest.FormValue("message")
+
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
 		return
 	}
+
+	// Store Token in Cache
+	var jwttoken = resultado.ReturnedValue
+	year, month, day := time.Now().Date()
+	var expiry = strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
 
 	// Store token somewhere in desktop
 	// Thinking of only using API Key
@@ -242,15 +273,34 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 
 	// At this point store the token somewhere, cookie or browser storage
 
-	c := http.Cookie{
-		Name:  "DanBTCjwt",
-		Value: resultado.ReturnedValue,
+	credentials.UserID = username
+	credentials.KeyJWT = "DanBTCjwt"
+	credentials.JWT = jwttoken
+	credentials.Expiry = expiry
+	credentials.Roles = []string{"BTC", "RestauranteOwner"}
+
+	jsonval, _ := json.Marshal(credentials)
+	jsonstring := string(jsonval)
+
+	// store in redis - server
+	_ = redisclient.Set(credentials.KeyJWT, jsonstring, 0).Err()
+
+	// store in cookie
+	expiration := time.Now().Add(1 * 2 * time.Hour)
+
+	c := &http.Cookie{
+		Name:     credentials.KeyJWT,
+		Value:    jsonstring,
+		Path:     "/",
+		Expires:  expiration,
+		MaxAge:   0,
+		HttpOnly: true,
 	}
-	http.SetCookie(httpresponsewriter, &c)
 
-	http.Redirect(httpresponsewriter, httprequest, "/", 301)
+	http.SetCookie(httpresponsewriter, c)
+
+	http.Redirect(httpresponsewriter, httprequest, "/", 303)
 	return
-
 }
 
 func loginPageOLD(res http.ResponseWriter, req *http.Request) {
@@ -283,15 +333,17 @@ func loginPageOLD(res http.ResponseWriter, req *http.Request) {
 }
 
 // ----------------------------------------------------------
+// Security section
+// ----------------------------------------------------------
+
+// ----------------------------------------------------------
 // Orders section
 // ----------------------------------------------------------
 
 func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 
-	cookie, _ := req.Cookie("DanBTCjwt")
-
-	if security.ValidateToken(redisclient, "Daniel", cookie.Value) == "NotOkToLogin" {
-		http.Redirect(httpwriter, req, "/login", 301)
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
 	} else {
 		ordershandler.List(httpwriter, redisclient)
 	}

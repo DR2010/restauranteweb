@@ -6,19 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"mongodb/helper"
 	"net/http"
 	"net/url"
-	"strconv"
+	helper "restauranteweb/areas/helper"
 	"strings"
-	"time"
 
 	"github.com/go-redis/redis"
 )
 
-// DishupdateAPI is
-// func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado {
-
+//  LoginUser something
 func LoginUser(redisclient *redis.Client, userid string, password string) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
@@ -58,22 +54,11 @@ func LoginUser(redisclient *redis.Client, userid string, password string) helper
 		emptydisplay.ErrorDescription = "200 OK"
 		emptydisplay.ReturnedValue = response
 
-		// Find out what to do to get a value back
-		//
-		tokenreturned := response
-
-		// Store Token in Cache
-		var jwttoken = tokenreturned
-		year, month, day := time.Now().Date()
-
-		var key = userid + strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
-
-		_ = redisclient.Set(key, jwttoken, 0).Err()
-
 	} else {
 		emptydisplay.IsSuccessful = "N"
 		emptydisplay.ErrorCode = "404 Error"
 		emptydisplay.ErrorDescription = "404 Shit happens!... and it happened!"
+
 	}
 
 	return emptydisplay
@@ -131,17 +116,24 @@ func SignUp(redisclient *redis.Client, userid string, password string, passwordv
 }
 
 // ValidateToken is half way
-func ValidateToken(redisclient *redis.Client, userid string, token string) string {
+func ValidateToken(redisclient *redis.Client, httprequest *http.Request) string {
 
-	//Get  Token in Cache
-	year, month, day := time.Now().Date()
+	var credtemp helper.Credentials
 
-	var key = userid + strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
+	cookie, _ := httprequest.Cookie("DanBTCjwt")
+	if cookie == nil {
+		return "NotOkToLogin"
+	}
+
+	cookieinbytes := []byte(cookie.Value)
+	_ = json.Unmarshal(cookieinbytes, &credtemp)
+
+	var key = credtemp.KeyJWT
 
 	tokenstored, _ := redisclient.Get(key).Result()
 
 	var ret = "NotOkToLogin"
-	if tokenstored == token {
+	if tokenstored == credtemp.JWT {
 		ret = "OkToLogin"
 	}
 
