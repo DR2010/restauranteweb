@@ -155,6 +155,46 @@ func ListCoinsHistory(redisclient *redis.Client, currency string, rows string) [
 	return dishlist
 }
 
+// ListCoinsHistoryDate works
+func ListCoinsHistoryDate(redisclient *redis.Client, currency string, yeardaymonth string, yeardaymonthend string) []BalanceCrypto {
+
+	var apiserver string
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/btccotacaolistdate?currency=" + currency + "&yeardaymonth=" + yeardaymonth + "&yeardaymonthend=" + yeardaymonthend
+
+	// urlrequest = "http://localhost:1520/btccotacaolist?currency=ALL&rows=50"
+
+	url := fmt.Sprintf(urlrequest)
+
+	var emptydisplay []BalanceCrypto
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	var dishlist []BalanceCrypto
+
+	if err := json.NewDecoder(resp.Body).Decode(&dishlist); err != nil {
+		log.Println(err)
+	}
+
+	return dishlist
+}
+
 // APICallAddTBD is
 func APICallAddTBD(redisclient *redis.Client, balcrypto BalanceCrypto) helper.Resultado {
 

@@ -66,3 +66,28 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	t.Execute(httpwriter, items)
 }
+
+type rediscachevalues struct {
+	MongoDBLocation string
+	MongoDBDatabase string
+	APIServerPort   string
+	APIServerIP     string
+	WebDebug        string
+	KeyJWT          string
+}
+
+// Not ready yet. Tenho que listar os valores do cache na web
+// mostrar o valor do cookie in full, if possible
+//
+func getcachedvalues(redisclient *redis.Client) []Cache {
+
+	var rv = new(rediscachevalues)
+
+	rv.KeyJWT, _ = redisclient.Get("DanBTCjwt").Result()
+
+	keys := make([]Cache, 1)
+	keys[0].Key = "JWT"
+	keys[0].Value = rv.KeyJWT
+
+	return keys
+}

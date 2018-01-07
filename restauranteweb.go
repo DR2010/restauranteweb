@@ -22,8 +22,6 @@ import (
 
 	"github.com/go-redis/redis"
 	// _ "github.com/go-sql-driver/mysql"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 var mongodbvar helper.DatabaseX
@@ -151,6 +149,10 @@ func root2(httpwriter http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// ----------------------------------------------------------
+// Security section
+// ----------------------------------------------------------
+
 func signupPage(res http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.ServeFile(res, req, "templates/signup.html")
@@ -173,7 +175,7 @@ func signupPage(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		http.Redirect(res, req, "/", 301)
+		http.Redirect(res, req, "/", 303)
 	} else {
 		http.Error(res, "Passwords do not match.", 500)
 		return
@@ -181,42 +183,23 @@ func signupPage(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func signupPageOLD(res http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.ServeFile(res, req, "templates/signup.html")
+func logoutPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
 
-		return
+	cookie, _ := httprequest.Cookie("DanBTCjwt")
+	if cookie != nil {
+		c := &http.Cookie{
+			Name:     "DanBTCjwt",
+			Value:    "",
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(httpresponsewriter, c)
+
 	}
 
-	username := req.FormValue("username")
-	password := req.FormValue("password")
-
-	var user string
-
-	err := db.QueryRow("SELECT username FROM users WHERE username=?", username).Scan(&user)
-
-	switch {
-	case err == sql.ErrNoRows:
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		if err != nil {
-			http.Error(res, "Server error, unable to create your account.", 500)
-			return
-		}
-
-		_, err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
-		if err != nil {
-			http.Error(res, "Server error, unable to create your account.", 500)
-			return
-		}
-
-		res.Write([]byte("User created!"))
-		return
-	case err != nil:
-		http.Error(res, "Server error, unable to create your account.", 500)
-		return
-	default:
-		http.Redirect(res, req, "/", 301)
-	}
+	http.Redirect(httpresponsewriter, httprequest, "/", 303)
 }
 
 func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
@@ -303,39 +286,6 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	return
 }
 
-func loginPageOLD(res http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.ServeFile(res, req, "templates/login.html")
-		return
-	}
-
-	username := req.FormValue("username")
-	password := req.FormValue("password")
-
-	var databaseUsername string
-	var databasePassword string
-
-	err := db.QueryRow("SELECT username, password FROM users WHERE username=?", username).Scan(&databaseUsername, &databasePassword)
-
-	if err != nil {
-		http.Redirect(res, req, "/loginPage", 301)
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(databasePassword), []byte(password))
-	if err != nil {
-		http.Redirect(res, req, "/loginPage", 301)
-		return
-	}
-
-	res.Write([]byte("Hello" + databaseUsername))
-
-}
-
-// ----------------------------------------------------------
-// Security section
-// ----------------------------------------------------------
-
 // ----------------------------------------------------------
 // Orders section
 // ----------------------------------------------------------
@@ -344,9 +294,10 @@ func orderlist(httpwriter http.ResponseWriter, req *http.Request) {
 
 	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 303)
-	} else {
-		ordershandler.List(httpwriter, redisclient)
+		return
 	}
+
+	ordershandler.List(httpwriter, redisclient)
 }
 
 func orderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
@@ -365,22 +316,12 @@ func orderviewdisplay(httpwriter http.ResponseWriter, req *http.Request) {
 // BTC Markets section
 // ----------------------------------------------------------
 
-func btcmarketslistV1(httpwriter http.ResponseWriter, req *http.Request) {
-	// var listofbit = btcmarketshandler.List(httpwriter, redisclient)
-	btcmarketshandler.List(httpwriter, redisclient)
-
-	// btcmarketshandler.Add(listofbit, redisclient)
-}
-
-// This is V2 - activated on 11:54AM 01-Jan-2018
-// This version logs the rates every minute
-func btcmarketslistV2(httpwriter http.ResponseWriter, req *http.Request) {
-	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
-
-	btcmarketshandler.Add(listofbit, redisclient)
-}
-
 func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
 
 	envirvar := new(helper.RestEnvVariables)
 	envirvar.RecordCurrencyTick, _ = redisclient.Get("RecordCurrencyTick").Result()
@@ -388,11 +329,16 @@ func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
 
 	if envirvar.RecordCurrencyTick == "Y" {
-		btcmarketshandler.Add(listofbit, redisclient)
+		btcmarketshandler.RecordTick(listofbit, redisclient)
 	}
 }
 
 func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
 
 	params := req.URL.Query()
 	var currency = params.Get("currency")
@@ -409,132 +355,167 @@ func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
 
 }
 
+func btclistcoinshistorydate(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
+	params := req.URL.Query()
+	var currency = params.Get("currency")
+	var yeardaymonth = params.Get("yeardaymonth")
+	var yeardaymonthend = params.Get("yeardaymonthend")
+
+	if currency == "" {
+		currency = "ALL"
+	}
+
+	btcmarketshandler.HListHistoryDate(httpwriter, redisclient, currency, yeardaymonth, yeardaymonthend)
+
+}
+
+func btcrecordtick(httpwriter http.ResponseWriter, req *http.Request) {
+
+	// Fazer o record tick aceitar um parametro para gravar de onde a rotina foi chamada
+	// .... btcrecordtick?rotina=CURLubuntuAUTO
+	// .... btcrecordtick?rotina=WindowsPC
+	// .... btcrecordtick?rotina=WindowsPCCURL
+
+	var listofbit = btcmarketshandler.GetBalance(redisclient)
+	btcmarketshandler.RecordTick(listofbit, redisclient)
+
+	jsonval, _ := json.Marshal(listofbit)
+	jsonstring := string(jsonval)
+
+	http.Error(httpwriter, jsonstring, 200)
+}
+
 // ----------------------------------------------------------
 // Dishes section
 // ----------------------------------------------------------
 
 func dishlist(httpwriter http.ResponseWriter, req *http.Request) {
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
 	disheshandler.List(httpwriter, redisclient)
 }
 
 func dishadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
 	disheshandler.LoadDisplayForAdd(httpwriter)
 }
 
 func dishadd(httpwriter http.ResponseWriter, req *http.Request) {
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
 	disheshandler.Add(httpwriter, req, redisclient)
 }
 
 func dishupdatedisplay(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
+
 	disheshandler.LoadDisplayForUpdate(httpresponsewriter, httprequest, redisclient)
 }
 
-func dishupdate(httpwriter http.ResponseWriter, req *http.Request) {
+func dishupdate(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
 
 	dishtoadd := disheshandler.Dish{}
 
-	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
-	dishtoadd.Type = req.FormValue("dishtype")
-	dishtoadd.Price = req.FormValue("dishprice")
-	dishtoadd.GlutenFree = req.FormValue("dishglutenfree")
-	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
-	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
+	dishtoadd.Name = httprequest.FormValue("dishname") // This is the key, must be unique
+	dishtoadd.Type = httprequest.FormValue("dishtype")
+	dishtoadd.Price = httprequest.FormValue("dishprice")
+	dishtoadd.GlutenFree = httprequest.FormValue("dishglutenfree")
+	dishtoadd.DairyFree = httprequest.FormValue("dishdairyfree")
+	dishtoadd.Vegetarian = httprequest.FormValue("dishvegetarian")
 
 	ret := disheshandler.DishupdateAPI(redisclient, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		http.Redirect(httpresponsewriter, httprequest, "/dishlist", 301)
 	} else {
-		http.Redirect(httpwriter, req, "/errorpage", 301)
+		http.Redirect(httpresponsewriter, httprequest, "/errorpage", 301)
 	}
 	return
 }
 
 func dishdeletedisplay(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
-
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
 	disheshandler.LoadDisplayForDelete(httpresponsewriter, httprequest, redisclient)
 
 }
-func dishdeletedisplayTBD(httpwriter http.ResponseWriter, req *http.Request) {
 
-	req.ParseForm()
+func dishdelete(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
 
-	// Get all selected records
-	dishselected := req.Form["dishes"]
-
-	var numrecsel = len(dishselected)
-
-	if numrecsel <= 0 {
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+	// ---------------------------------------------------------------------
+	//        Security - Authorisation Check
+	// ---------------------------------------------------------------------
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
 		return
 	}
-
-	type ControllerInfo struct {
-		Name string
-	}
-	type Row struct {
-		Description []string
-	}
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-		DishItem   disheshandler.Dish
-	}
-
-	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishdelete.html")
-
-	items := DisplayTemplate{}
-	items.Info.Name = "Dish Delete"
-
-	items.DishItem = disheshandler.Dish{}
-	items.DishItem.Name = dishselected[0]
-
-	var dishfind = disheshandler.Dish{}
-	var dishname = items.DishItem.Name
-
-	dishfind = disheshandler.FindAPI(redisclient, dishname)
-	items.DishItem = dishfind
-
-	t.Execute(httpwriter, items)
-
-	return
-
-}
-
-func dishdelete(httpwriter http.ResponseWriter, req *http.Request) {
+	// ---------------------------------------------------------------------
 
 	dishtoadd := disheshandler.Dish{}
 
-	dishtoadd.Name = req.FormValue("dishname") // This is the key, must be unique
-	dishtoadd.Type = req.FormValue("dishtype")
-	dishtoadd.Price = req.FormValue("dishprice")
-	dishtoadd.GlutenFree = req.FormValue("dishglutenfree")
-	dishtoadd.DairyFree = req.FormValue("dishdairyfree")
-	dishtoadd.Vegetarian = req.FormValue("dishvegetarian")
+	dishtoadd.Name = httprequest.FormValue("dishname") // This is the key, must be unique
+	dishtoadd.Type = httprequest.FormValue("dishtype")
+	dishtoadd.Price = httprequest.FormValue("dishprice")
+	dishtoadd.GlutenFree = httprequest.FormValue("dishglutenfree")
+	dishtoadd.DairyFree = httprequest.FormValue("dishdairyfree")
+	dishtoadd.Vegetarian = httprequest.FormValue("dishvegetarian")
 
 	ret := disheshandler.Dishdelete(mongodbvar, dishtoadd)
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		http.Redirect(httpresponsewriter, httprequest, "/dishlist", 301)
 		return
 	}
 }
 
-func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
+func dishdeletemultiple(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+	// ---------------------------------------------------------------------
+	//        Security - Authorisation Check
+	// ---------------------------------------------------------------------
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
+	// ---------------------------------------------------------------------
 
-	req.ParseForm()
+	httprequest.ParseForm()
 
 	// Get all selected records
-	dishselected := req.Form["dishes"]
+	dishselected := httprequest.Form["dishes"]
 
 	var numrecsel = len(dishselected)
 
 	if numrecsel <= 0 {
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		http.Redirect(httpresponsewriter, httprequest, "/dishlist", 301)
 		return
 	}
 
@@ -544,17 +525,26 @@ func dishdeletemultiple(httpwriter http.ResponseWriter, req *http.Request) {
 
 	if ret.IsSuccessful == "Y" {
 		// http.ServeFile(httpwriter, req, "success.html")
-		http.Redirect(httpwriter, req, "/dishlist", 301)
+		http.Redirect(httpresponsewriter, httprequest, "/dishlist", 301)
 		return
 	}
 
-	http.Redirect(httpwriter, req, "/dishlist", 301)
+	http.Redirect(httpresponsewriter, httprequest, "/dishlist", 301)
 	return
 
 }
 
-func showcache(httpwriter http.ResponseWriter, req *http.Request) {
-	cachehandler.List(httpwriter, redisclient)
+func showcache(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+	// ---------------------------------------------------------------------
+	//        Security - Authorisation Check
+	// ---------------------------------------------------------------------
+	if security.ValidateToken(redisclient, httprequest) == "NotOkToLogin" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
+	// ---------------------------------------------------------------------
+
+	cachehandler.List(httpresponsewriter, redisclient)
 }
 
 func errorpage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {

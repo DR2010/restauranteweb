@@ -3,16 +3,16 @@
 <meta http-equiv="refresh" content="300">
 <h2>{{ .Info.Currency }} - {{ .Info.Name }} </h2>
 <p id="date"></p><br>
-    <!-- {{if eq .Info.Currency "SUMMARY" }}
+<!-- {{if eq .Info.Currency "SUMMARY" }}
     <input id="clickMe" type="button" value="50" onclick="showlinechart();" /> <p/> {{end}}  -->
-    {{if eq .Info.Currency "SUMMARY" }}
-    {{ else }}
-    <p/>
-    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=50" class="btn btn-md btn-success ">50</a>
-    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=100" class="btn btn-md btn-success ">100</a>
-    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=1000" class="btn btn-md btn-success ">1000</a>
-    <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=2000" class="btn btn-md btn-success ">2000</a>
-    {{ end }}
+{{if eq .Info.Currency "SUMMARY" }} {{ else }}
+<p/>
+<a href="/btcmarketslist" class="btn btn-md btn-success ">Back to Coins</a>
+<a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=50" class="btn btn-md btn-success ">50</a>
+<a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=100" class="btn btn-md btn-success ">100</a>
+<a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=500" class="btn btn-md btn-success ">500</a>
+<a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=1000" class="btn btn-md btn-success ">1000</a>
+<a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=2000" class="btn btn-md btn-success ">2000</a> {{ end }}
 
 <div style="float:left;" class="table-responsive">
 

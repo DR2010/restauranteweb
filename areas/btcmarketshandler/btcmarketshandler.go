@@ -138,6 +138,33 @@ func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client) []Balance
 	return RetBtccoin
 }
 
+// GetBalance = assemble results of API call to dish list
+//
+func GetBalance(redisclient *redis.Client) []BalanceCrypto {
+
+	// Get list of orders (api call)
+	//
+	var list = ListCoinsIhave(redisclient)
+
+	var RetBtccoin []BalanceCrypto
+	RetBtccoin = make([]BalanceCrypto, len(list))
+
+	for i := 0; i < len(list); i++ {
+
+		// New code to return values to write to mongo every minute or every call
+		// 31/12/2017
+		//
+		RetBtccoin[i] = BalanceCrypto{}
+		RetBtccoin[i].Balance = list[i].Balance
+		RetBtccoin[i].Currency = list[i].Currency
+		RetBtccoin[i].CotacaoAtual = list[i].CotacaoAtual
+		RetBtccoin[i].ValueInCashAUD = list[i].ValueInCashAUD
+
+	}
+
+	return RetBtccoin
+}
+
 // HListHistory = assemble results of API call to
 //
 func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, currency string, rows string) []BalanceCrypto {
@@ -188,8 +215,58 @@ func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, cur
 	return RetBtccoin
 }
 
-// Add is xxx
-func Add(balcrypto []BalanceCrypto, redisclient *redis.Client) {
+// HListHistoryDate = assemble results of API call to
+//
+func HListHistoryDate(httpwriter http.ResponseWriter, redisclient *redis.Client, currency string, yeardaymonth string, yeardaymonthend string) []BalanceCrypto {
+
+	// create new template
+	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+
+	// Get list of orders (api call)
+	//
+	var list = ListCoinsHistoryDate(redisclient, currency, yeardaymonth, yeardaymonthend)
+
+	// Assembly display structure for html template
+	//
+	items := DisplayTemplate{}
+	items.Info.Name = "Market Value - History - Date"
+	items.Info.Currency = currency
+
+	var numberoffields = 5
+
+	// Set colum names
+	items.FieldNames = make([]string, numberoffields)
+	items.FieldNames[0] = "Currency"
+	items.FieldNames[1] = "Balance"
+	items.FieldNames[2] = "CotacaoAtual"
+	items.FieldNames[3] = "ValueInCashAUD"
+	items.FieldNames[4] = "DateTime"
+
+	// Set rows to be displayed
+	items.Rows = make([]Row, len(list))
+	items.Btccoin = make([]BalanceCrypto, len(list))
+
+	var RetBtccoin []BalanceCrypto
+	RetBtccoin = make([]BalanceCrypto, len(list))
+
+	for i := 0; i < len(list); i++ {
+
+		items.Btccoin[i] = BalanceCrypto{}
+		items.Btccoin[i].Balance = list[i].Balance
+		items.Btccoin[i].Currency = list[i].Currency
+		items.Btccoin[i].CotacaoAtual = list[i].CotacaoAtual
+		items.Btccoin[i].ValueInCashAUD = list[i].ValueInCashAUD
+		items.Btccoin[i].DateTime = list[i].DateTime
+
+	}
+
+	t.Execute(httpwriter, items)
+
+	return RetBtccoin
+}
+
+// RecordTick is xxx
+func RecordTick(balcrypto []BalanceCrypto, redisclient *redis.Client) {
 
 	for i := 0; i < len(balcrypto); i++ {
 

@@ -60,6 +60,7 @@ var routes = Routes{
 	Route{"Index", "GET", "/", root},
 	Route{"login", "GET", "/login", loginPage},
 	Route{"login", "POST", "/login", loginPage},
+	Route{"logout", "GET", "/logout", logoutPage},
 	Route{"errorpage", "GET", "/login", errorpage},
 	Route{"signup", "GET", "/signup", signupPage},
 	Route{"signup", "POST", "/signup", signupPage},
@@ -79,5 +80,6 @@ var routes = Routes{
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
 	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},
 	Route{"btcmarketshistorylist", "GET", "/btcmarketshistorylist", btclistcoinshistory},
+	Route{"btcrecordtick", "GET", "/btcrecordtick", btcrecordtick},
 	// Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
 }

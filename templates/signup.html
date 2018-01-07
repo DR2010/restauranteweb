@@ -2,7 +2,7 @@
 <html ng-app="myApp">
 
 <head>
-    <title>Daniel Login</title>
+    <title>Daniel Registration</title>
 
     <meta id="meta" name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
@@ -18,12 +18,12 @@
         <a href="/" class="btn btn-md btn-success "> <i class="glyphicon glyphicon-book"></i>Main Page</a>
     </div>
     <myHero>
-        <h2>Dan's Coins - Registration</h2>
+        <h2>Dan's Coins - Registration New User</h2>
     </myHero>
 
     <form method="POST" action="/signup">
 
-        User ID:
+        Email Address:
         <p/>
         <input type="text" name="username">
         <p/> Password:
@@ -36,6 +36,9 @@
         <input type="submit" value="Submit">
         <p/>
     </form>
+
+    <p>If already registered, login instead:</p>
+    <a href="/login" class="btn btn-md btn-success ">Click Here to Login</a>
 
 
     <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
