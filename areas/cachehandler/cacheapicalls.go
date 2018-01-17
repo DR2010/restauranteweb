@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"restauranteweb/areas/helper"
 
 	"github.com/go-redis/redis"
 )
@@ -65,6 +66,32 @@ func ListEntries(redisclient *redis.Client) []Cache {
 		log.Println(err)
 
 	}
+
+	return cachelist
+}
+
+// ListEntriesWeb works
+func ListEntriesWeb(redisclient *redis.Client) []Cache {
+
+	envirvar := new(helper.RestEnvVariables)
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	envirvar.APIAPIServerPort, _ = redisclient.Get("Web.APIServer.Port").Result()
+	envirvar.WEBServerPort, _ = redisclient.Get("WEBServerPort").Result()
+	envirvar.WEBDebug, _ = redisclient.Get("Web.Debug").Result()
+	envirvar.RecordCurrencyTick, _ = redisclient.Get("RecordCurrencyTick").Result()
+	envirvar.RunningFromServer, _ = redisclient.Get("RunningFromServer").Result()
+
+	cachelist := make([]Cache, 5)
+	cachelist[0].Key = "Web.APIServer.IPAddress"
+	cachelist[0].Value = envirvar.APIAPIServerIPAddress
+	cachelist[1].Key = "Web.APIServer.Port"
+	cachelist[1].Value = envirvar.APIAPIServerPort
+	cachelist[2].Key = "RunningFromServer"
+	cachelist[2].Value = envirvar.RunningFromServer
+	cachelist[3].Key = "RecordCurrencyTick"
+	cachelist[3].Value = envirvar.RecordCurrencyTick
+	cachelist[4].Key = "WEBServerPort"
+	cachelist[4].Value = envirvar.WEBServerPort
 
 	return cachelist
 }

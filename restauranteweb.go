@@ -90,6 +90,7 @@ func main() {
 	http.Handle("/ts/", http.StripPrefix("/ts", http.FileServer(http.Dir("./ts"))))
 	http.Handle("/css/", http.StripPrefix("/css", http.FileServer(http.Dir("./css"))))
 	http.Handle("/fonts/", http.StripPrefix("/fonts", http.FileServer(http.Dir("./fonts"))))
+	http.Handle("/images/", http.StripPrefix("/images", http.FileServer(http.Dir("./images"))))
 
 	err := http.ListenAndServe(":1510", nil) // setting listening port
 	// err := http.ListenAndServe(envirvar.WEBServerPort, nil) // setting listening port
@@ -132,7 +133,12 @@ func root(httpwriter http.ResponseWriter, r *http.Request) {
 	// create new template
 	var listtemplate = `
 		{{define "listtemplate"}}
-	    This is our restaurant!
+		This is my web site, Daniel - aka D#.
+		<p/>
+		<p/>
+		<picture>
+			<img src="images/avatar.png" alt="Avatar" width="400" height="400">
+		</picture>
 		{{end}}
 		`
 
@@ -316,6 +322,24 @@ func orderviewdisplay(httpwriter http.ResponseWriter, req *http.Request) {
 // BTC Markets section
 // ----------------------------------------------------------
 
+func btcpreorderadddisplay(httpwriter http.ResponseWriter, req *http.Request) {
+	btcmarketshandler.LoadDisplayForAdd(httpwriter, redisclient)
+}
+
+func btcpreorderadd(httpwriter http.ResponseWriter, req *http.Request) {
+	btcmarketshandler.BTCPreOrderAdd(httpwriter, req, redisclient)
+}
+
+func btcpreorderlist(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
+	btcmarketshandler.PreOrderList(httpwriter, redisclient)
+}
+
 func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 
 	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
@@ -329,7 +353,7 @@ func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
 
 	if envirvar.RecordCurrencyTick == "Y" {
-		btcmarketshandler.RecordTick(listofbit, redisclient)
+		btcmarketshandler.RecordTick(redisclient, listofbit, "btcmarketslistV3")
 	}
 }
 
@@ -364,14 +388,21 @@ func btclistcoinshistorydate(httpwriter http.ResponseWriter, req *http.Request) 
 
 	params := req.URL.Query()
 	var currency = params.Get("currency")
-	var yeardaymonth = params.Get("yeardaymonth")
-	var yeardaymonthend = params.Get("yeardaymonthend")
+	var fromDate = params.Get("fromDate")
+	var toDate = params.Get("toDate")
+
+	if fromDate == "" {
+		fromDate = "2018-01-06"
+	}
+	if toDate == "" {
+		toDate = "2018-01-07"
+	}
 
 	if currency == "" {
 		currency = "ALL"
 	}
 
-	btcmarketshandler.HListHistoryDate(httpwriter, redisclient, currency, yeardaymonth, yeardaymonthend)
+	btcmarketshandler.HListHistoryDate(httpwriter, redisclient, currency, fromDate, toDate)
 
 }
 
@@ -382,8 +413,14 @@ func btcrecordtick(httpwriter http.ResponseWriter, req *http.Request) {
 	// .... btcrecordtick?rotina=WindowsPC
 	// .... btcrecordtick?rotina=WindowsPCCURL
 
+	params := req.URL.Query()
+	var rotina = params.Get("rotina")
+	if rotina == "" {
+		rotina = "Not sure - web test most likely"
+	}
+
 	var listofbit = btcmarketshandler.GetBalance(redisclient)
-	btcmarketshandler.RecordTick(listofbit, redisclient)
+	btcmarketshandler.RecordTick(redisclient, listofbit, rotina)
 
 	jsonval, _ := json.Marshal(listofbit)
 	jsonstring := string(jsonval)
@@ -544,14 +581,16 @@ func showcache(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	}
 	// ---------------------------------------------------------------------
 
+	// Cache from API
 	cachehandler.List(httpresponsewriter, redisclient)
+
 }
 
 func errorpage(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
 	// create new template
 	var listtemplate = `
 	{{define "listtemplate"}}
-
+	{{ .Info.Name }}
 	{{end}}
 	`
 	t, _ := template.ParseFiles("templates/error.html")

@@ -38,9 +38,13 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	// create new template
 	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
 
-	// Get list of dishes (api call)
+	// Get list of entries in cache API (api call)
 	//
 	var cachelist = ListEntries(redisclient)
+
+	// Get list of entries in cache WEB
+	//
+	var cachelistWeb = ListEntriesWeb(redisclient)
 
 	// Assemble the display structure for html template
 	//
@@ -55,13 +59,24 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	items.FieldNames[1] = "Value"
 
 	// Set rows to be displayed
-	items.Rows = make([]Row, len(cachelist))
+	var total = len(cachelist) + len(cachelistWeb)
+	items.Rows = make([]Row, total)
 
+	var count = 0
 	for i := 0; i < len(cachelist); i++ {
 		items.Rows[i] = Row{}
 		items.Rows[i].Description = make([]string, numberoffields)
 		items.Rows[i].Description[0] = cachelist[i].Key
 		items.Rows[i].Description[1] = cachelist[i].Value
+		count++
+	}
+
+	for i := 0; i < len(cachelistWeb); i++ {
+		items.Rows[count] = Row{}
+		items.Rows[count].Description = make([]string, numberoffields)
+		items.Rows[count].Description[0] = cachelistWeb[i].Key
+		items.Rows[count].Description[1] = cachelistWeb[i].Value
+		count++
 	}
 
 	t.Execute(httpwriter, items)

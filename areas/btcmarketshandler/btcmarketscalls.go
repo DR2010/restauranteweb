@@ -41,11 +41,17 @@ type CurrencyTick struct {
 
 // BalanceCrypto e
 type BalanceCrypto struct {
-	Balance        string // balance
-	Currency       string // pend
-	CotacaoAtual   string // curren
-	ValueInCashAUD string // curren
+	Balance        string //
+	Currency       string //
+	CotacaoAtual   string //
+	ValueInCashAUD string //
+	BestBid        string
+	BestAsk        string
+	LastPrice      string
+	Instrument     string
+	Volume24       string
 	DateTime       string
+	Rotina         string
 }
 
 // ListCoinsIhave works
@@ -57,7 +63,13 @@ func ListCoinsIhave(redisclient *redis.Client) []BalanceCrypto {
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 	urlrequest := apiserver + "/orderlist"
 
-	urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets/ALL"
+	// OLD urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets/ALL"
+	// NEW bypass portal urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets/getbyid?id=ALL"
+
+	// NEW via portal    urlrequest = https://danielapimanagement.azure-api.net/pontinhoapi.azurewebsites.net/api/btcmarkets/getbyid?id=ALL
+	// Have to send the subscription key :-)
+	// urlrequest = "https://danielapimanagement.azure-api.net/pontinhoapi.azurewebsites.net/api/btcmarkets/getbyid?id=ALL"
+	urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets/getbyid?id=ALL"
 
 	url := fmt.Sprintf(urlrequest)
 
@@ -68,6 +80,8 @@ func ListCoinsIhave(redisclient *redis.Client) []BalanceCrypto {
 		return emptydisplay
 	}
 
+	// via portal requires header
+	// req.Header.Set("Ocp-Apim-Subscription-Key", "eb9f7b1620494fb2bdc7815705fd8c7e")
 	client := &http.Client{}
 
 	resp, err := client.Do(req)
@@ -195,57 +209,9 @@ func ListCoinsHistoryDate(redisclient *redis.Client, currency string, yeardaymon
 	return dishlist
 }
 
-// APICallAddTBD is
-func APICallAddTBD(redisclient *redis.Client, balcrypto BalanceCrypto) helper.Resultado {
-
-	envirvar := new(helper.RestEnvVariables)
-
-	// convert balcrypto in bytes
-	bresp, _ := json.Marshal(balcrypto)
-
-	bodystr := string(bresp[:])
-
-	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
-
-	apiURL := envirvar.APIAPIServerIPAddress
-	resource := "/btccotacaoadd"
-
-	u, _ := url.ParseRequestURI(apiURL)
-	u.Path = resource
-	urlStr := u.String()
-
-	body := strings.NewReader(bodystr)
-	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
-
-	var emptydisplay helper.Resultado
-	emptydisplay.ErrorCode = resp2.Status
-
-	defer resp2.Body.Close()
-	var objectback helper.Resultado
-
-	if resp2.Status == "200 OK" {
-		emptydisplay.IsSuccessful = "Y"
-		var resultado = resp2.Body
-		log.Println(resultado)
-
-		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
-			log.Println(err)
-		} else {
-
-			var x = objectback.ErrorDescription
-			log.Println(x)
-		}
-
-	} else {
-		emptydisplay.IsSuccessful = "N"
-
-	}
-	return objectback
-}
-
 // APIcallAdd is based on Dishes Add - different from Order Add
 // They are different because the order one handles the entire form - is manually handled
-func APIcallAdd(redisclient *redis.Client, cryptoInsert BalanceCrypto) helper.Resultado {
+func APIcallAdd(redisclient *redis.Client, cryptoInsert BalanceCrypto, rotina string) helper.Resultado {
 
 	envirvar := new(helper.RestEnvVariables)
 
@@ -259,6 +225,10 @@ func APIcallAdd(redisclient *redis.Client, cryptoInsert BalanceCrypto) helper.Re
 	data.Add("cryptoCotacaoAtual", cryptoInsert.CotacaoAtual)
 	data.Add("cryptoCurrency", cryptoInsert.Currency)
 	data.Add("cryptoValueInCashAUD", cryptoInsert.ValueInCashAUD)
+	data.Add("cryptoBestAsk", cryptoInsert.BestAsk)
+	data.Add("cryptoBestBid", cryptoInsert.BestBid)
+	data.Add("cryptoVolume24", cryptoInsert.Volume24)
+	data.Add("rotina", cryptoInsert.Rotina)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
@@ -278,4 +248,95 @@ func APIcallAdd(redisclient *redis.Client, cryptoInsert BalanceCrypto) helper.Re
 
 	return emptydisplay
 
+}
+
+// PreOrderAPICallList works
+// Order List
+func PreOrderAPICallList(redisclient *redis.Client) []PreOrder {
+
+	var apiserver string
+	var emptydisplay []PreOrder
+
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	urlrequest := apiserver + "/btcpreorderlist"
+
+	url := fmt.Sprintf(urlrequest)
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	// return list of orders
+	var list []PreOrder
+
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		log.Println(err)
+	}
+
+	return list
+}
+
+// RespAddOrder is
+type RespAddOrder struct {
+	ID string
+}
+
+// PreOrderAPIcallAdd is based on Dishes Add - different from Order Add
+// They are different because the order one handles the entire form - is manually handled
+func PreOrderAPICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
+
+	envirvar := new(helper.RestEnvVariables)
+	bodystr := string(bodybyte[:])
+
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	// mongodbvar.APIServer = "http://localhost:1520/"
+
+	apiURL := envirvar.APIAPIServerIPAddress
+	resource := "/btcpreorderadd"
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(bodystr)
+	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	defer resp2.Body.Close()
+	var objectback RespAddOrder
+
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+		var resultado = resp2.Body
+		log.Println(resultado)
+
+		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
+			log.Println(err)
+		} else {
+
+			var x = objectback.ID
+			log.Println(x)
+		}
+
+	} else {
+		emptydisplay.IsSuccessful = "N"
+
+	}
+	return objectback
 }

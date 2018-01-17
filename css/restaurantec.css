@@ -7,15 +7,15 @@ button {
 }
 
 myHero {
-    display: block;
-    background-color: #dddddd;
-    padding: 5px;
-    font-size: 15px;
+    display: none;
+    background-color: #fa7e2b;
+    padding: 2px;
+    font-size: 10px;
 }
 
 #header {
     width: 100%;
-    background-color: red;
+    background-color:  #57d3b8;
     height: 30px;
 }
 

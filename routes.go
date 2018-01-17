@@ -80,6 +80,10 @@ var routes = Routes{
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
 	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},
 	Route{"btcmarketshistorylist", "GET", "/btcmarketshistorylist", btclistcoinshistory},
+	Route{"btcmarketshistorylistdate", "GET", "/btcmarketshistorylistdate", btclistcoinshistorydate},
 	Route{"btcrecordtick", "GET", "/btcrecordtick", btcrecordtick},
 	// Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
+	Route{"btcpreorderadddisplay", "POST", "/btcpreorderadddisplay", btcpreorderadddisplay},
+	Route{"btcpreorderlist", "GET", "/btcpreorderlist", btcpreorderlist},
+	Route{"btcpreorderadd", "POST", "/btcpreorderadd", btcpreorderadd},
 }
