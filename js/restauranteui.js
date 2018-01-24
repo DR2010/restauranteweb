@@ -366,9 +366,20 @@ function showlinechartdate(){
     var currency = document.getElementById('currency');
 
     var url = "/btcmarketshistorylistdate?currency="+currency.value+"&fromDate="+fromDate.value+"&toDate="+toDate.value;
-
     window.location.href = url;
 }
+
+function showlinechart2(){
+    var currency = document.getElementById('currency');
+    var url = "/btcmarketshistorylist?currency="+currency.value+"&rows=200";
+    window.location.href = url;
+}
+
+function showlinechartcoin(coin){
+    var url = "/btcmarketshistorylist?currency="+coin+"&rows=200";
+    window.location.href = url;
+}
+
 
 function showbarchart() {
     showanychart('bar','Y','Y');

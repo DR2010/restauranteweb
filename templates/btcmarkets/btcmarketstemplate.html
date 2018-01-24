@@ -2,15 +2,7 @@
 <form action="Submit" method="POST" />
 <meta http-equiv="refresh" content="300">
 
-{{if eq .Info.Name "History" }}
-    <myHero>
-    <h2>{{ .Info.Currency }} - {{ .Info.Name }}</h2>
-    </myHero>
-{{ else }}
-    <myHero>
-    <h2>{{ .Info.Name }} </h2>
-    </myHero>
-{{ end }}
+<h2>{{ .Info.Currency }} - {{ .Info.Name }}</h2>
 
 <p id="date"></p><br>
 {{if eq .Info.Currency "History" }}
@@ -21,7 +13,7 @@
 <!-- <input id="showprice" type="button" value="Price" onclick="showlinechartprice();" /> 
 <input id="showvolume" type="button" value="Volume" onclick="showlinechartvolume();" /> <p/>
 <p/> -->
-    <a href="/btcmarketslist" class="btn btn-md btn-success ">Back to Coins</a>
+    <!-- <a href="/btcmarketslist" class="btn btn-md btn-success ">Coins</a> -->
     <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=50" class="btn btn-md btn-success ">50</a>
     <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=100" class="btn btn-md btn-success ">100</a>
     <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=500" class="btn btn-md btn-success ">500</a>
@@ -31,18 +23,28 @@
 
 <div style="float:left;" class="table-responsive">
 
-    {{ $currency := .Info.Currency }}
-    {{if eq .Info.Name "History - Date" }} 
-        <br>Currency:<br>
-        <select name="currency" id="currency">
-            {{range .Coins }}
-                {{ if eq $currency .Short }}
-                   <option selected={{ .Short }}>{{ .Name }}</option>
-                {{ else }}
-                    <option value={{ .Short }}>{{ .Name }}</option>
-                {{end}}
+    <!-- {{ $currency := .Info.Currency }}
+    <br>Currency:<br>
+    <select name="currency" id="currency">
+        {{range .Coins }}
+            {{ if eq $currency .Short }}
+               <option selected={{ .Short }}>{{ .Name }}</option>
+            {{ else }}
+                <option value={{ .Short }}>{{ .Name }}</option>
             {{end}}
-        </select>
+        {{end}}
+    </select> -->
+
+    <!-- <input id="refreshchart" type="button" value="Go" onclick="showlinechart2()"> -->
+    <a href="/btcmarketshistorylist?currency=BTC&rows=200" class="btn btn-md btn-primary ">BTC</a>
+    <a href="/btcmarketshistorylist?currency=LTC&rows=200" class="btn btn-md btn-success ">LTC</a>
+    <a href="/btcmarketshistorylist?currency=ETH&rows=200" class="btn btn-md btn-warning ">ETH</a>
+    <a href="/btcmarketshistorylist?currency=XRP&rows=200" class="btn btn-md btn-primary ">XRP</a>
+    <a href="/btcmarketshistorylist?currency=ETC&rows=200" class="btn btn-md btn-success ">ETC</a>
+    <a href="/btcmarketshistorylist?currency=BCH&rows=200" class="btn btn-md btn-warning ">BCH</a>
+    <p/>
+
+    {{if eq .Info.Name "History - Date" }} 
 
         <p/><p/>
         <input type="date" id="fromDate" name="fromDate" value="{{ .Info.FromDate }}"> 

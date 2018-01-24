@@ -226,6 +226,28 @@ func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, cur
 	items.Info.Name = "History"
 	items.Info.Currency = currency
 
+	//
+	// Drop Down Coins
+	//
+	var numberofcoins = 8
+	items.Coins = make([]Coin, numberofcoins)
+	items.Coins[0].Short = "AUD"
+	items.Coins[0].Name = "Australian Dollar"
+	items.Coins[1].Short = "BTC"
+	items.Coins[1].Name = "Bitcoin"
+	items.Coins[2].Short = "LTC"
+	items.Coins[2].Name = "Litecoin"
+	items.Coins[3].Short = "ETH"
+	items.Coins[3].Name = "Ethereum"
+	items.Coins[4].Short = "XRP"
+	items.Coins[4].Name = "Ripple"
+	items.Coins[5].Short = "BCH"
+	items.Coins[5].Name = "Bitcash"
+	items.Coins[6].Short = "ETC"
+	items.Coins[6].Name = "EthClassic"
+	items.Coins[7].Short = "ALL"
+	items.Coins[7].Name = "All Coins"
+
 	var numberoffields = 8
 
 	// Set colum names
