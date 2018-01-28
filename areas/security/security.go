@@ -187,6 +187,51 @@ func ValidateToken(redisclient *redis.Client, httprequest *http.Request) string 
 	return ret
 }
 
+// ValidateTokenV2 will get info from cache
+func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (string, helper.Credentials) {
+
+	// The system will store an object in cache and the key must be the used ID
+	// The same user can logon in 2 places, I think
+	// Users can't be mixed, I can't trust the variables since it is completely stateless - each request is stateless
+
+	var credentialsnull helper.Credentials
+	credentialsnull.JWT = "Error"
+
+	jwtincookie := ""
+	useridincookie := ""
+
+	cookiekeyJWT := "DanBTCjwt"
+	cookiekeyUSERID := "DanBTCuserid"
+
+	cookieJWT, _ := httprequest.Cookie(cookiekeyJWT)
+	if cookieJWT == nil {
+		return "NotOkToLogin", credentialsnull
+	}
+
+	cookieUSERID, _ := httprequest.Cookie(cookiekeyUSERID)
+	if cookieUSERID == nil {
+		return "NotOkToLogin", credentialsnull
+	}
+
+	jwtincookie = cookieJWT.Value
+	useridincookie = cookieUSERID.Value
+
+	var keyredis = cookiekeyJWT + useridincookie
+
+	tokenstored, _ := redisclient.Get(keyredis).Result()
+	tokenstoredbytes := []byte(tokenstored)
+
+	var credentials helper.Credentials
+	_ = json.Unmarshal(tokenstoredbytes, &credentials)
+
+	var ret = "NotOkToLogin"
+	if credentials.JWT == jwtincookie {
+		ret = "OkToLogin"
+	}
+
+	return ret, credentials
+}
+
 // this is just a reference key
 // the roles, date and user will be stored at the server
 func Hashstring(str string) string {

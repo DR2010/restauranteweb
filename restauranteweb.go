@@ -27,7 +27,8 @@ import (
 )
 
 var mongodbvar helper.DatabaseX
-var credentials helper.Credentials
+
+// var credentials helper.Credentials
 
 var db *sql.DB
 var err error
@@ -74,7 +75,6 @@ func main() {
 	mongodbvar.Location = "localhost"
 	mongodbvar.Database = "restaurante"
 
-	credentials.UserID = "No User"
 	// mongodbvar.APIServer = "http://192.168.2.180:1520/"
 	// mongodbvar.APIServer = "http://localhost:1520/"
 
@@ -165,7 +165,9 @@ func root2(httpwriter http.ResponseWriter, r *http.Request) {
 
 func root3(httpwriter http.ResponseWriter, req *http.Request) {
 
-	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+	error, credentials := security.ValidateTokenV2(redisclient, req)
+
+	if error == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 303)
 		return
 	}
@@ -263,15 +265,6 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 		return
 	}
 
-	// ---------------------------------------------
-	//  COOKIE with ERROR !!!!!!!!!!!!!!!!! 28/01/2018 8:45AM
-	// -----------------------------------------------
-	// -----------------------------------------------
-	// -----------------------------------------------
-	// -----------------------------------------------
-	// -----------------------------------------------
-	// -----------------------------------------------
-
 	// Store Token in Cache
 	var jwttoken = resultado.ReturnedValue
 	year, month, day := time.Now().Date()
@@ -284,6 +277,7 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 
 	// At this point store the token somewhere, cookie or browser storage
 
+	var credentials helper.Credentials
 	credentials.UserID = username
 	credentials.KeyJWT = "DanBTCjwt"
 	credentials.JWT = jwttoken
@@ -325,10 +319,19 @@ func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Reque
 		return
 	}
 
-	cookie, _ := httprequest.Cookie("DanBTCjwt")
+	// res httpresponsewriter
+	// req httprequest
+
+	username := httprequest.FormValue("username")
+	password := httprequest.FormValue("password")
+
+	cookiekey := "DanBTCjwt"
+	rediskey := "DanBTCjwt" + username
+
+	cookie, _ := httprequest.Cookie(cookiekey)
 	if cookie != nil {
 		c := &http.Cookie{
-			Name:     "DanBTCjwt",
+			Name:     cookiekey,
 			Value:    "X",
 			Path:     "/",
 			Expires:  time.Unix(0, 0),
@@ -339,18 +342,11 @@ func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Reque
 
 	}
 
-	// res httpresponsewriter
-	// req httprequest
-
-	username := httprequest.FormValue("username")
-	password := httprequest.FormValue("password")
-
 	// Check if the user is valid and issue reference token
 	//
 	var resultado = security.LoginUserV2(redisclient, username, password)
 
 	if resultado.JWT == "Error" {
-
 		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
 		return
 	}
@@ -360,18 +356,11 @@ func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Reque
 	year, month, day := time.Now().Date()
 	var expiry = strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
 
-	// Store token somewhere in desktop
-	// Thinking of only using API Key
-	// The logon has to exist, but should not call an API instead access the database
-	// However we should also allow the API key to access
-
-	// At this point store the token somewhere, cookie or browser storage
-
+	var credentials helper.Credentials
 	credentials.UserID = username
-	credentials.KeyJWT = "DanBTCjwt"
+	credentials.KeyJWT = rediskey
 	credentials.JWT = jwttoken
 	credentials.Expiry = expiry
-	credentials.Roles = []string{"BTC", "RestauranteOwner"}
 	credentials.ClaimSet = resultado.ClaimSet
 	credentials.ApplicationID = resultado.ApplicationID
 
@@ -380,19 +369,20 @@ func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Reque
 
 	// The string had to be escaped because of double quotes.
 	// It will have to be unescaped before using
-	escapedjson := html.EscapeString(jsonstring)
+	// It is not working becaus of the symbol: ";"
+	// escapedjson := html.EscapeString(jsonstring)
 
 	// store in redis - server
-	_ = redisclient.Set(credentials.KeyJWT, jsonstring, 0).Err()
-	_ = redisclient.Set("ApplicationID", credentials.ApplicationID, 0).Err()
-	_ = redisclient.Set("UserID", username, 0).Err()
+	// KeyJWT = DanBTCjwtUSERID, example DanBTCjwtDaniel
+	//
+	_ = redisclient.Set(rediskey, jsonstring, 0).Err()
 
 	// store in cookie
 	expiration := time.Now().Add(1 * 2 * time.Hour)
 
 	c := &http.Cookie{
-		Name:     credentials.KeyJWT,
-		Value:    escapedjson,
+		Name:     cookiekey,
+		Value:    jwttoken,
 		Path:     "/",
 		Expires:  expiration,
 		MaxAge:   0,
@@ -400,6 +390,104 @@ func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Reque
 	}
 
 	http.SetCookie(httpresponsewriter, c)
+
+	http.Redirect(httpresponsewriter, httprequest, "/", 303)
+	return
+}
+
+func loginPageV3(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+
+	if httprequest.Method != "POST" {
+		http.ServeFile(httpresponsewriter, httprequest, "templates/security/login.html")
+		return
+	}
+
+	username := httprequest.FormValue("username")
+	password := httprequest.FormValue("password")
+
+	cookiekeyJWT := "DanBTCjwt"
+	cookiekeyUSERID := "DanBTCuserid"
+
+	cookieJWT, _ := httprequest.Cookie(cookiekeyJWT)
+	cookieUSERID, _ := httprequest.Cookie(cookiekeyUSERID)
+
+	if cookieJWT != nil {
+		cokJWT := &http.Cookie{
+			Name:     cookiekeyJWT,
+			Value:    "X",
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(httpresponsewriter, cokJWT)
+	}
+
+	if cookieUSERID != nil {
+		cokUSERID := &http.Cookie{
+			Name:     cookiekeyUSERID,
+			Value:    "X",
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(httpresponsewriter, cokUSERID)
+	}
+
+	// Check if the user is valid and issue reference token
+	//
+	var resultado = security.LoginUserV2(redisclient, username, password)
+
+	if resultado.JWT == "Error" {
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
+
+	// Store Token in Cache
+	var jwttoken = resultado.JWT
+	year, month, day := time.Now().Date()
+	var expiry = strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
+
+	rediskey := "DanBTCjwt" + username
+
+	var credentials helper.Credentials
+	credentials.UserID = username
+	credentials.KeyJWT = rediskey
+	credentials.JWT = jwttoken
+	credentials.Expiry = expiry
+	credentials.ClaimSet = resultado.ClaimSet
+	credentials.ApplicationID = resultado.ApplicationID
+
+	jsonval, _ := json.Marshal(credentials)
+	jsonstring := string(jsonval)
+
+	_ = redisclient.Set(rediskey, jsonstring, 0).Err()
+
+	// store in cookie
+	expiration := time.Now().Add(1 * 2 * time.Hour)
+
+	cokJWT := &http.Cookie{
+		Name:     cookiekeyJWT,
+		Value:    jwttoken,
+		Path:     "/",
+		Expires:  expiration,
+		MaxAge:   0,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(httpresponsewriter, cokJWT)
+
+	cokUSERID := &http.Cookie{
+		Name:     cookiekeyUSERID,
+		Value:    username,
+		Path:     "/",
+		Expires:  expiration,
+		MaxAge:   0,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(httpresponsewriter, cokUSERID)
 
 	http.Redirect(httpresponsewriter, httprequest, "/", 303)
 	return
@@ -455,7 +543,9 @@ func btcpreorderlist(httpwriter http.ResponseWriter, req *http.Request) {
 
 func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 
-	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+	error, credentials := security.ValidateTokenV2(redisclient, req)
+
+	if error == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 303)
 		return
 	}
@@ -472,7 +562,9 @@ func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 
 func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
 
-	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+	error, credentials := security.ValidateTokenV2(redisclient, req)
+
+	if error == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 303)
 		return
 	}
@@ -494,7 +586,9 @@ func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
 
 func btclistcoinshistorydate(httpwriter http.ResponseWriter, req *http.Request) {
 
-	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+	error, credentials := security.ValidateTokenV2(redisclient, req)
+
+	if error == "NotOkToLogin" {
 		http.Redirect(httpwriter, req, "/login", 303)
 		return
 	}

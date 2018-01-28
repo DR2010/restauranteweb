@@ -62,8 +62,8 @@ var routes = Routes{
 	// ----------------------------------------------------------- Error
 	// Route{"errorpage", "GET", "/login", errorpage},
 	// ----------------------------------------------------------- Security
-	Route{"login", "GET", "/login", loginPageV2},
-	Route{"login", "POST", "/login", loginPageV2},
+	Route{"login", "GET", "/login", loginPageV3},
+	Route{"login", "POST", "/login", loginPageV3},
 	Route{"logout", "GET", "/logout", logoutPage},
 	Route{"signup", "GET", "/signup", signupPage},
 	Route{"signup", "POST", "/signup", signupPage},
