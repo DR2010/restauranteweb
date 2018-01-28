@@ -8,11 +8,57 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"restauranteapi/security"
 	helper "restauranteweb/areas/helper"
 	"strings"
 
 	"github.com/go-redis/redis"
 )
+
+//  LoginUserV2 something
+func LoginUserV2(redisclient *redis.Client, userid string, password string) security.Credentials {
+
+	mongodbvar := new(helper.DatabaseX)
+
+	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	apiURL := mongodbvar.APIServer
+	resource := "/securitylogin"
+
+	data := url.Values{}
+	data.Add("userid", userid)
+	data.Add("password", password)
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(data.Encode())
+	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	fmt.Println("resp2.Status:" + resp2.Status)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	defer resp2.Body.Close()
+
+	var response security.Credentials
+
+	if err := json.NewDecoder(resp2.Body).Decode(&response); err != nil {
+		log.Println(err)
+	}
+
+	if resp2.Status == "200 OK" {
+		return response
+
+	}
+
+	response.ApplicationID = "None"
+	response.JWT = "Error"
+
+	return response
+}
 
 //  LoginUser something
 func LoginUser(redisclient *redis.Client, userid string, password string) helper.Resultado {
@@ -64,7 +110,7 @@ func LoginUser(redisclient *redis.Client, userid string, password string) helper
 	return emptydisplay
 }
 
-func SignUp(redisclient *redis.Client, userid string, password string, passwordvalidate string) helper.Resultado {
+func SignUp(redisclient *redis.Client, userid string, password string, passwordvalidate string, applicationid string) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -93,6 +139,7 @@ func SignUp(redisclient *redis.Client, userid string, password string, passwordv
 	data.Add("userid", userid)
 	data.Add("password", passwordhashed)
 	data.Add("passwordvalidate", passwordvalidatehashed)
+	data.Add("applicationid", applicationid)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource

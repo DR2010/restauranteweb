@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+<head>
+
+    <meta id="meta" name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/taskman.css" />
+    <link rel="stylesheet" type="text/css" href="css/restaurantec.css" />
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,300,700" rel="stylesheet" type="text/css">
+    <link rel="icon" href="images/Daniel.jpg">
+</head>
+
+<body ng-controller="tasksController" onload="danielonload()">
+
+    {{ template "pagebodytemplate" . }}
+
+    <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/restauranteui.js"></script>
+    <script type="text/javascript" src="js/danbtcmarkets.js"></script>
+</body>
+
+</html>

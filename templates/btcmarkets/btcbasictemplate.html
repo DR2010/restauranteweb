@@ -10,27 +10,31 @@
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,300,700" rel="stylesheet" type="text/css">
     <link rel="icon" href="images/Daniel.jpg">
-    
 </head>
 
 <body ng-controller="tasksController" onload="danielonload()">
     <div id="header" class="navbar navbar-left" id="navbar">
         <a href="/" class="btn btn-md btn-warning ">Main Page</a>
-        <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
-        <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
-        <!-- <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a> -->
-        <!-- <a href="/signup" class="btn btn-md btn-warning ">Sign Up</a>
-        <a href="/login" class="btn btn-md btn-warning ">Login</a>
-        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> -->
+        {{ if eq .Info.Application "Bitcoin" }}
+            <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
+            <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
+        {{end}}
+    
+        {{ if eq .Info.Application "Restaurante" }}
+            <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+            <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
+            <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+        {{end}}
 
     </div>
-    <p/> {{ template "basictemplate" . }}
+    <p/> 
+    
+    {{ template "btcmarketstemplate" . }}
 
     <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/restauranteui.js"></script>
     <script type="text/javascript" src="js/danbtcmarkets.js"></script>
-
 </body>
 
 </html>

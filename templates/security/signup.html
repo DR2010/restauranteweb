@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+<head>
+    <title>D# Registration</title>
+
+    <meta id="meta" name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/taskman.css" />
+    <link rel="stylesheet" type="text/css" href="css/restaurantec.css" />
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,300,700" rel="stylesheet" type="text/css">
+
+</head>
+
+<body ng-controller="tasksController" onload="danielonload()">
+    <div id="header" class="navbar navbar-left" id="navbar">
+        <a href="/" class="btn btn-md btn-warning">Main Page</a>
+    </div>
+    <myHero>
+        <h2>New User</h2>
+    </myHero>
+
+    <form method="POST" action="/signup">
+
+        Email Address:
+        <p/>
+        <input type="text" name="username">
+        <p/> Password:
+        <p/>
+        <input type="password" name="password">
+        <p/> Re-type Password:
+        <p/>
+        <input type="password" name="passwordvalidate">
+        <p/>
+        <br>Application:<br>
+        <select name="applicationid" id="applicationid">
+            <option value="Restaurante">Restaurante</option>
+            <option value="Belnorth">Belnorth</option>
+            <option value="Bitcoin">Bitcoin</option>
+        </select>
+        <br>
+        <p/>
+        <input type="submit" value="Submit">
+        <p/>
+    </form>
+
+    <p>If already registered, login instead:</p>
+    <a href="/login" class="btn btn-md btn-success ">Click Here to Login</a>
+
+
+    <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/restauranteui.js"></script>
+    <script type="text/javascript" src="js/danbtcmarkets.js"></script>
+
+</body>
+
+</html>

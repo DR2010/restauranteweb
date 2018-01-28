@@ -36,7 +36,7 @@ type DisplayTemplate struct {
 func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/listtemplate.html")
 
 	// Get list of entries in cache API (api call)
 	//

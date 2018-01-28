@@ -17,12 +17,13 @@ import (
 
 // ControllerInfo is
 type ControllerInfo struct {
-	UserID   string
-	Name     string
-	Message  string
-	Currency string
-	FromDate string
-	ToDate   string
+	UserID      string
+	Name        string
+	Message     string
+	Currency    string
+	FromDate    string
+	ToDate      string
+	Application string
 }
 
 // Row is
@@ -36,68 +37,32 @@ type Coin struct {
 	Name  string
 }
 
+// SecurityClaim is
+type SecurityClaim struct {
+	Type  string
+	Value string
+}
+
 // DisplayTemplate is
 type DisplayTemplate struct {
-	Info       ControllerInfo
-	FieldNames []string
-	Rows       []Row
-	Btccoin    []BalanceCrypto
-	Coins      []Coin
-	PreOrders  []PreOrder
+	Info           ControllerInfo
+	FieldNames     []string
+	Rows           []Row
+	Btccoin        []BalanceCrypto
+	Coins          []Coin
+	PreOrders      []PreOrder
+	SecurityClaims []SecurityClaim
 }
 
 var mongodbvar helper.DatabaseX
 
-// List = assemble results of API call to dish list
-//
-func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
-
-	// create new template
-	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
-
-	// Get list of orders (api call)
-	//
-	var list = ListCoinsIhave(redisclient)
-
-	// Assembly display structure for html template
-	//
-	items := DisplayTemplate{}
-	items.Info.Name = "Daniel Investment List"
-	items.Info.Currency = "NA"
-
-	var numberoffields = 4
-
-	// Set colum names
-	items.FieldNames = make([]string, numberoffields)
-	items.FieldNames[0] = "Currency"
-	items.FieldNames[1] = "Balance"
-	items.FieldNames[2] = "CotacaoAtual"
-	items.FieldNames[3] = "ValueInCashAUD"
-
-	// Set rows to be displayed
-	items.Rows = make([]Row, len(list))
-	items.Btccoin = make([]BalanceCrypto, len(list))
-
-	for i := 0; i < len(list); i++ {
-
-		items.Btccoin[i] = BalanceCrypto{}
-		items.Btccoin[i].Balance = list[i].Balance
-		items.Btccoin[i].Currency = list[i].Currency
-		items.Btccoin[i].CotacaoAtual = list[i].CotacaoAtual
-		items.Btccoin[i].ValueInCashAUD = list[i].ValueInCashAUD
-
-	}
-
-	t.Execute(httpwriter, items)
-
-}
-
 // ListV2 = assemble results of API call to dish list
 //
-func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client) []BalanceCrypto {
+func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials) []BalanceCrypto {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+	// t, _ := template.ParseFiles("templates/btcmarkets/btcbasic.html", "templates/btcmarkets/btcmarketstemplate.html")
+	t, _ := template.ParseFiles("html/homepage.html", "templates/btcmarkets/pagebodytemplateBTC.html")
 
 	// Get list of orders (api call)
 	//
@@ -108,6 +73,8 @@ func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client) []Balance
 	items := DisplayTemplate{}
 	items.Info.Name = "Coins"
 	items.Info.Currency = "SUMMARY"
+	items.Info.UserID = credentials.UserID
+	items.Info.Application = credentials.ApplicationID
 
 	var numberofcoins = 8
 	items.Coins = make([]Coin, numberofcoins)
@@ -127,6 +94,14 @@ func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client) []Balance
 	items.Coins[6].Name = "Bitcash"
 	items.Coins[7].Short = "ALL"
 	items.Coins[7].Name = "All Coins"
+
+	// Set roles from cookie
+	//
+	items.SecurityClaims = make([]SecurityClaim, 2)
+	items.SecurityClaims[0].Type = "UserRole"
+	items.SecurityClaims[0].Value = "ADMIN"
+	items.SecurityClaims[1].Type = "SpecialRole"
+	items.SecurityClaims[1].Value = "Manager"
 
 	var numberoffields = 7
 
@@ -211,10 +186,11 @@ func GetBalance(redisclient *redis.Client) []BalanceCrypto {
 
 // HListHistory = assemble results of API call to
 //
-func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, currency string, rows string) []BalanceCrypto {
+func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials, currency string, rows string) []BalanceCrypto {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+	// t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+	t, _ := template.ParseFiles("html/homepage.html", "templates/btcmarkets/pagebodytemplateBTC.html")
 
 	// Get list of orders (api call)
 	//
@@ -225,7 +201,8 @@ func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, cur
 	items := DisplayTemplate{}
 	items.Info.Name = "History"
 	items.Info.Currency = currency
-
+	items.Info.UserID = credentials.UserID
+	items.Info.Application = credentials.ApplicationID
 	//
 	// Drop Down Coins
 	//
@@ -289,10 +266,11 @@ func HListHistory(httpwriter http.ResponseWriter, redisclient *redis.Client, cur
 
 // HListHistoryDate = assemble results of API call to
 //
-func HListHistoryDate(httpwriter http.ResponseWriter, redisclient *redis.Client, currency string, yeardaymonth string, yeardaymonthend string) []BalanceCrypto {
+func HListHistoryDate(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials, currency string, yeardaymonth string, yeardaymonthend string) []BalanceCrypto {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+	// t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+	t, _ := template.ParseFiles("html/homepage.html", "templates/btcmarkets/pagebodytemplateBTC.html")
 
 	// Get list of orders (api call)
 	//
@@ -305,6 +283,8 @@ func HListHistoryDate(httpwriter http.ResponseWriter, redisclient *redis.Client,
 	items.Info.Currency = currency
 	items.Info.FromDate = yeardaymonth
 	items.Info.ToDate = yeardaymonthend
+	items.Info.UserID = credentials.UserID
+	items.Info.Application = credentials.ApplicationID
 
 	// Add Ethereum Classic
 
@@ -394,4 +374,57 @@ func Lpad(s string, pad string, plength int) string {
 		s = pad + s
 	}
 	return s
+}
+
+// List = assemble results of API call to dish list
+//
+func TBDList(httpwriter http.ResponseWriter, redisclient *redis.Client) {
+
+	// create new template
+	t, _ := template.ParseFiles("templates/basictemplate.html", "templates/btcmarkets/btcmarketstemplate.html")
+
+	// Get list of orders (api call)
+	//
+	var list = ListCoinsIhave(redisclient)
+
+	// Assembly display structure for html template
+	//
+	items := DisplayTemplate{}
+	items.Info.Name = "Daniel Investment List"
+	items.Info.Currency = "NA"
+	items.Info.Application = "Restaurante"
+
+	var numberoffields = 4
+
+	// Set colum names
+	items.FieldNames = make([]string, numberoffields)
+	items.FieldNames[0] = "Currency"
+	items.FieldNames[1] = "Balance"
+	items.FieldNames[2] = "CotacaoAtual"
+	items.FieldNames[3] = "ValueInCashAUD"
+
+	// Set roles from cookie
+	//
+	items.SecurityClaims = make([]SecurityClaim, 2)
+	items.SecurityClaims[0].Type = "UserRole"
+	items.SecurityClaims[0].Value = "ADMIN"
+	items.SecurityClaims[1].Type = "SpecialRole"
+	items.SecurityClaims[1].Value = "Manager"
+
+	// Set rows to be displayed
+	items.Rows = make([]Row, len(list))
+	items.Btccoin = make([]BalanceCrypto, len(list))
+
+	for i := 0; i < len(list); i++ {
+
+		items.Btccoin[i] = BalanceCrypto{}
+		items.Btccoin[i].Balance = list[i].Balance
+		items.Btccoin[i].Currency = list[i].Currency
+		items.Btccoin[i].CotacaoAtual = list[i].CotacaoAtual
+		items.Btccoin[i].ValueInCashAUD = list[i].ValueInCashAUD
+
+	}
+
+	t.Execute(httpwriter, items)
+
 }

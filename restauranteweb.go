@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html"
 	"html/template"
 	"log"
 	"net/http"
@@ -16,7 +17,8 @@ import (
 	disheshandler "restauranteweb/areas/disheshandler"
 	helper "restauranteweb/areas/helper"
 	"restauranteweb/areas/ordershandler"
-	security "restauranteweb/areas/security"
+	"restauranteweb/areas/security"
+
 	"strconv"
 	"time"
 
@@ -128,7 +130,13 @@ func loadreferencedatainredis() {
 
 }
 
-func root(httpwriter http.ResponseWriter, r *http.Request) {
+// func root(httpwriter http.ResponseWriter, r *http.Request) {
+func root(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
 
 	// create new template
 	var listtemplate = `
@@ -142,7 +150,7 @@ func root(httpwriter http.ResponseWriter, r *http.Request) {
 		{{end}}
 		`
 
-	t, _ := template.ParseFiles("templates/indextemplate.html")
+	t, _ := template.ParseFiles("html/index.html")
 	t, _ = t.Parse(listtemplate)
 
 	t.Execute(httpwriter, listtemplate)
@@ -155,13 +163,23 @@ func root2(httpwriter http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func root3(httpwriter http.ResponseWriter, req *http.Request) {
+
+	if security.ValidateToken(redisclient, req) == "NotOkToLogin" {
+		http.Redirect(httpwriter, req, "/login", 303)
+		return
+	}
+
+	helper.HomePage(httpwriter, redisclient, credentials)
+}
+
 // ----------------------------------------------------------
 // Security section
 // ----------------------------------------------------------
 
 func signupPage(res http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		http.ServeFile(res, req, "templates/signup.html")
+		http.ServeFile(res, req, "templates/security/signup.html")
 
 		return
 	}
@@ -169,11 +187,12 @@ func signupPage(res http.ResponseWriter, req *http.Request) {
 	username := req.FormValue("username")
 	password := req.FormValue("password")
 	passwordvalidate := req.FormValue("passwordvalidate")
+	applicationid := req.FormValue("applicationid")
 
 	if password == passwordvalidate {
 
 		// Call API to check if user exists and create
-		var resultado = security.SignUp(redisclient, username, password, passwordvalidate)
+		var resultado = security.SignUp(redisclient, username, password, passwordvalidate, applicationid)
 		if resultado.ErrorCode == "200 OK" {
 
 		} else {
@@ -219,7 +238,7 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	if cookie != nil {
 		c := &http.Cookie{
 			Name:     "DanBTCjwt",
-			Value:    "",
+			Value:    "X",
 			Path:     "/",
 			Expires:  time.Unix(0, 0),
 			MaxAge:   -1,
@@ -240,15 +259,18 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	var resultado = security.LoginUser(redisclient, username, password)
 
 	if resultado.ErrorCode == "404 Error" {
-		// http.Redirect(httpresponsewriter, httprequest, "/loginPage", 303)
-		// http.Error(httpresponsewriter, "Passwords do not match.", 500)
-		// return
-		// http.ServeFile(httpresponsewriter, httprequest, "templates/security/login.html")
-		// message := httprequest.FormValue("message")
-
 		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
 		return
 	}
+
+	// ---------------------------------------------
+	//  COOKIE with ERROR !!!!!!!!!!!!!!!!! 28/01/2018 8:45AM
+	// -----------------------------------------------
+	// -----------------------------------------------
+	// -----------------------------------------------
+	// -----------------------------------------------
+	// -----------------------------------------------
+	// -----------------------------------------------
 
 	// Store Token in Cache
 	var jwttoken = resultado.ReturnedValue
@@ -271,6 +293,10 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 	jsonval, _ := json.Marshal(credentials)
 	jsonstring := string(jsonval)
 
+	// The string had to be escaped because of double quotes.
+	// It will have to be unescaped before using
+	escapedjson := html.EscapeString(jsonstring)
+
 	// store in redis - server
 	_ = redisclient.Set(credentials.KeyJWT, jsonstring, 0).Err()
 
@@ -279,7 +305,94 @@ func loginPage(httpresponsewriter http.ResponseWriter, httprequest *http.Request
 
 	c := &http.Cookie{
 		Name:     credentials.KeyJWT,
-		Value:    jsonstring,
+		Value:    escapedjson,
+		Path:     "/",
+		Expires:  expiration,
+		MaxAge:   0,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(httpresponsewriter, c)
+
+	http.Redirect(httpresponsewriter, httprequest, "/", 303)
+	return
+}
+
+func loginPageV2(httpresponsewriter http.ResponseWriter, httprequest *http.Request) {
+
+	if httprequest.Method != "POST" {
+		http.ServeFile(httpresponsewriter, httprequest, "templates/security/login.html")
+		return
+	}
+
+	cookie, _ := httprequest.Cookie("DanBTCjwt")
+	if cookie != nil {
+		c := &http.Cookie{
+			Name:     "DanBTCjwt",
+			Value:    "X",
+			Path:     "/",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		}
+		http.SetCookie(httpresponsewriter, c)
+
+	}
+
+	// res httpresponsewriter
+	// req httprequest
+
+	username := httprequest.FormValue("username")
+	password := httprequest.FormValue("password")
+
+	// Check if the user is valid and issue reference token
+	//
+	var resultado = security.LoginUserV2(redisclient, username, password)
+
+	if resultado.JWT == "Error" {
+
+		http.Redirect(httpresponsewriter, httprequest, "/login", 303)
+		return
+	}
+
+	// Store Token in Cache
+	var jwttoken = resultado.JWT
+	year, month, day := time.Now().Date()
+	var expiry = strconv.Itoa(int(year)) + strconv.Itoa(int(month)) + strconv.Itoa(int(day))
+
+	// Store token somewhere in desktop
+	// Thinking of only using API Key
+	// The logon has to exist, but should not call an API instead access the database
+	// However we should also allow the API key to access
+
+	// At this point store the token somewhere, cookie or browser storage
+
+	credentials.UserID = username
+	credentials.KeyJWT = "DanBTCjwt"
+	credentials.JWT = jwttoken
+	credentials.Expiry = expiry
+	credentials.Roles = []string{"BTC", "RestauranteOwner"}
+	credentials.ClaimSet = resultado.ClaimSet
+	credentials.ApplicationID = resultado.ApplicationID
+
+	jsonval, _ := json.Marshal(credentials)
+	jsonstring := string(jsonval)
+
+	// The string had to be escaped because of double quotes.
+	// It will have to be unescaped before using
+	escapedjson := html.EscapeString(jsonstring)
+
+	// store in redis - server
+	_ = redisclient.Set(credentials.KeyJWT, jsonstring, 0).Err()
+	_ = redisclient.Set("ApplicationID", credentials.ApplicationID, 0).Err()
+	_ = redisclient.Set("UserID", username, 0).Err()
+
+	// store in cookie
+	expiration := time.Now().Add(1 * 2 * time.Hour)
+
+	c := &http.Cookie{
+		Name:     credentials.KeyJWT,
+		Value:    escapedjson,
 		Path:     "/",
 		Expires:  expiration,
 		MaxAge:   0,
@@ -350,7 +463,7 @@ func btcmarketslistV3(httpwriter http.ResponseWriter, req *http.Request) {
 	envirvar := new(helper.RestEnvVariables)
 	envirvar.RecordCurrencyTick, _ = redisclient.Get("RecordCurrencyTick").Result()
 
-	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient)
+	var listofbit = btcmarketshandler.ListV2(httpwriter, redisclient, credentials)
 
 	if envirvar.RecordCurrencyTick == "Y" {
 		btcmarketshandler.RecordTick(redisclient, listofbit, "btcmarketslistV3")
@@ -375,7 +488,7 @@ func btclistcoinshistory(httpwriter http.ResponseWriter, req *http.Request) {
 		rows = "100"
 	}
 
-	btcmarketshandler.HListHistory(httpwriter, redisclient, currency, rows)
+	btcmarketshandler.HListHistory(httpwriter, redisclient, credentials, currency, rows)
 
 }
 
@@ -402,7 +515,7 @@ func btclistcoinshistorydate(httpwriter http.ResponseWriter, req *http.Request) 
 		currency = "ALL"
 	}
 
-	btcmarketshandler.HListHistoryDate(httpwriter, redisclient, currency, fromDate, toDate)
+	btcmarketshandler.HListHistoryDate(httpwriter, redisclient, credentials, currency, fromDate, toDate)
 
 }
 

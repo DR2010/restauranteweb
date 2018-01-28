@@ -1,0 +1,43 @@
+{{ define "pagebodytemplate" }}
+
+<div id="header" class="navbar navbar-left" id="navbar">
+    <a href="/" class="btn btn-md btn-warning ">Main Page</a>
+    {{ if eq .Info.Application "Bitcoin" }}
+        <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
+        <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
+    {{end}}
+    
+    {{ if eq .Info.Application "Restaurante" }}
+        <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+        <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
+        <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+    {{end}}
+    <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+
+
+</div>
+
+<picture>
+    {{ if eq .Info.Application "Bitcoin" }}
+        <img src="images/crypto.jpeg" alt="Avatar">
+    {{end}}
+    {{ if eq .Info.Application "Restaurante" }}
+        <img src="images/coffee.png" alt="Avatar">
+    {{end}}
+    {{ if eq .Info.Application "Belnorth" }}
+        <img src="images/belnorth.jpg" alt="Avatar">
+    {{end}}
+</picture>
+
+<p/> 
+
+<form action="Submit" method="POST" />
+</form>
+
+<div id="header" class="navbar navbar-right" id="navbar">
+    <a href="/" class="btn btn-md btn-info">Application: {{ .Info.Application }}</a>
+    <a href="/" class="btn btn-md btn-success">User ID: {{ .Info.UserID }}</a>
+
+</div>
+
+{{end}}

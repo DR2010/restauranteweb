@@ -41,7 +41,7 @@ var mongodbvar helper.DatabaseX
 func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/listtemplate.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/listtemplate.html")
 
 	// Get list of dishes (api call)
 	//
@@ -86,7 +86,7 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 func LoadDisplayForAdd(httpwriter http.ResponseWriter) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishadd.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/dish/dishadd.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
@@ -117,7 +117,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 		// http.PostForm("templates/error.html", url.Values{"key": {"Value"}, "id": {"123"}})
 
 		// create new template
-		t, _ := template.ParseFiles("templates/indextemplate.html", "templates/error.html")
+		t, _ := template.ParseFiles("html/index.html", "templates/error.html")
 
 		items := DisplayTemplate{}
 		items.Info.Name = "Error"
@@ -160,7 +160,7 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 	}
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishupdate.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/dish/dishupdate.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
@@ -210,7 +210,7 @@ func LoadDisplayForDelete(httpwriter http.ResponseWriter, httprequest *http.Requ
 	}
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dishdelete.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/dishdelete.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Delete"
@@ -300,7 +300,7 @@ func dishdeletedisplay(httpwriter http.ResponseWriter, req *http.Request, redisc
 	}
 
 	// create new template
-	t, _ := template.ParseFiles("templates/indextemplate.html", "templates/dish/dishdelete.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/dish/dishdelete.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Delete"

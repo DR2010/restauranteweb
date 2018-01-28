@@ -1,0 +1,136 @@
+{{ define "pagebodytemplate" }}
+
+<div id="header" class="navbar navbar-left" id="navbar">
+    <a href="/" class="btn btn-md btn-warning ">Main Page</a>
+    {{ if eq .Info.Application "Bitcoin" }}
+        <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
+        <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
+    {{end}}
+    
+    {{ if eq .Info.Application "Restaurante" }}
+        <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+        <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
+        <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+    {{end}}
+
+    <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+</div>
+<p/> 
+
+
+<form action="Submit" method="POST" />
+    <meta http-equiv="refresh" content="300">
+
+    <h2>{{ .Info.Currency }} - {{ .Info.Name }}</h2>
+
+    <p id="date"></p><br>
+    {{if eq .Info.Currency "History" }}
+        <input id="clickMe" type="button" value="Price Only" onclick="showlinechartprice();" /> <p/> {{end}} 
+    <p/>
+
+
+    {{if eq .Info.Name "History" }}
+    <!-- <input id="showprice" type="button" value="Price" onclick="showlinechartprice();" /> 
+    <input id="showvolume" type="button" value="Volume" onclick="showlinechartvolume();" /> <p/>
+    <p/> -->
+        <!-- <a href="/btcmarketslist" class="btn btn-md btn-success ">Coins</a> -->
+        <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=50" class="btn btn-md btn-success ">50</a>
+        <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=100" class="btn btn-md btn-success ">100</a>
+        <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=500" class="btn btn-md btn-success ">500</a>
+        <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=1000" class="btn btn-md btn-success ">1000</a>
+        <a href="/btcmarketshistorylist?currency={{ .Info.Currency }}&rows=2000" class="btn btn-md btn-success ">2000</a> 
+    {{ end }}
+
+    <div style="float:left;" class="table-responsive">
+
+        <!-- {{ $currency := .Info.Currency }}
+        <br>Currency:<br>
+        <select name="currency" id="currency">
+            {{range .Coins }}
+                {{ if eq $currency .Short }}
+                <option selected={{ .Short }}>{{ .Name }}</option>
+                {{ else }}
+                    <option value={{ .Short }}>{{ .Name }}</option>
+                {{end}}
+            {{end}}
+        </select> -->
+
+        <!-- <input id="refreshchart" type="button" value="Go" onclick="showlinechart2()"> -->
+        <a href="/btcmarketshistorylist?currency=BTC&rows=200" class="btn btn-md btn-primary ">BTC</a>
+        <a href="/btcmarketshistorylist?currency=LTC&rows=200" class="btn btn-md btn-success ">LTC</a>
+        <a href="/btcmarketshistorylist?currency=ETH&rows=200" class="btn btn-md btn-warning ">ETH</a>
+        <a href="/btcmarketshistorylist?currency=XRP&rows=200" class="btn btn-md btn-primary ">XRP</a>
+        <a href="/btcmarketshistorylist?currency=ETC&rows=200" class="btn btn-md btn-success ">ETC</a>
+        <a href="/btcmarketshistorylist?currency=BCH&rows=200" class="btn btn-md btn-warning ">BCH</a>
+        <p/>
+
+        {{if eq .Info.Name "History - Date" }} 
+
+            <p/><p/>
+            <input type="date" id="fromDate" name="fromDate" value="{{ .Info.FromDate }}"> 
+            <br>To:<br>
+            <input type="date" id="toDate" name="toDate" value="{{ .Info.ToDate }}"> 
+            <p/><p/>
+            <input id="refreshchart" type="button" value="Refresh" onclick="showlinechartdate()">
+            <p/>
+            <canvas id="myChart" width="400" height="400"></canvas> 
+        {{end}}
+        
+        {{if eq .Info.Name "History" }}
+            <canvas id="myChart" width="400" height="400"></canvas> 
+        {{end}}
+
+        <p>
+            <table id=tablecotacao name=tablecotacao class="table table-striped table-bordered">
+                <tr>
+                    <th><b>Currency</b></th>
+                    <th><b>Balance</b></th>
+                    <th><b>Price</b></th>
+                    <th><b>Investment</b></th>
+                    <th><b>Volume24</b></th>
+                    <th><b>BestAsk</b></th>
+                    <th><b>BestBid</b></th>
+                    <th><b>Timestamp</b></th>
+                </tr>
+                {{range .Btccoin }}
+                <tr>
+                    <td>
+                        <a href="/btcmarketshistorylist?currency={{ .Currency }}">{{ .Currency }}</a> --
+                        <a href="/btcmarketshistorylistdate?currency={{ .Currency }}">Date</a>
+                    </td>
+                    <td>
+                        {{ .Balance }}
+                    </td>
+                    <td>
+                        {{ .CotacaoAtual }}
+                    </td>
+                    <td>
+                        {{ .ValueInCashAUD }}
+                    </td>
+                    <td>
+                        {{ .Volume24 }}
+                    </td>
+                    <td>
+                        {{ .BestAsk }}
+                    </td>
+                    <td>
+                        {{ .BestBid }}
+                    </td>
+                    <td>
+                        {{ .DateTime }}
+                    </td>
+                </tr>
+                {{end}}
+
+            </table>
+        </p>
+
+
+        <p/>
+
+
+
+    </div>
+
+    </form>
+{{end}}

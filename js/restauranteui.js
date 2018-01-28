@@ -428,7 +428,11 @@ function showanychart(chartype, lineprice, linevolume) {
     for (var i = st; i >= 1; i--) {
 
         // Coin
-        var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(62, 3);
+//         var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(62, 3);
+
+// Full theTbl.rows[i].cells[0].innerHTML value
+// "↵                        <a href="/btcmarketshistorylist?currency=XRP">XRP</a> --↵                        <a href="/btcmarketshistorylistdate?currency=XRP">Date</a>↵                    "
+        var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(66, 3);
         // Price Coin
         var price = Number(theTbl.rows[i].cells[2].innerHTML);
         // Volume Coin
@@ -497,7 +501,8 @@ function showanychart(chartype, lineprice, linevolume) {
 
         // This is the X label
         var Xlabel = theTbl.rows[i].cells[7].innerHTML;
-        var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(62, 3);
+        // var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(62, 3);
+        var valuecol0 = theTbl.rows[i].cells[0].innerHTML.substr(66, 3);
 
         if (valuecol0 == "AUD") {
             arr.push(Number(theTbl.rows[i].cells[3].innerHTML));
@@ -583,7 +588,7 @@ function showanychart(chartype, lineprice, linevolume) {
                 arrvolume.push(Number(theTbl.rows[i].cells[4].innerHTML));
             }
 
-        labellist.push(Xlabel.substr(29, 8));
+        labellist.push(Xlabel.substr(30, 8));
     }
 
     if (linevolume == 'N') {
