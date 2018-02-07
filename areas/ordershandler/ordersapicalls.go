@@ -247,36 +247,49 @@ func APICallFind(redisclient *redis.Client, objectfind string) Order {
 }
 
 // APICallUpdate is
-func APICallUpdate(redisclient *redis.Client, objectUpdate Order) helper.Resultado {
+func APICallUpdate(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
 
-	mongodbvar := new(helper.DatabaseX)
+	envirvar := new(helper.RestEnvVariables)
+	bodystr := string(bodybyte[:])
 
-	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
-	apiURL := mongodbvar.APIServer
+	// mongodbvar.APIServer = "http://localhost:1520/"
+
+	apiURL := envirvar.APIAPIServerIPAddress
 	resource := "/orderupdate"
-
-	data := url.Values{}
-	data.Add("id", objectUpdate.ID)
-	data.Add("date", objectUpdate.Date)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String()
 
-	body := strings.NewReader(data.Encode())
-	resp2, _ := http.Post(urlStr, "application/x-www-form-urlencoded", body)
-
-	fmt.Println("resp2.Status:" + resp2.Status)
+	body := strings.NewReader(bodystr)
+	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
 
 	var emptydisplay helper.Resultado
 	emptydisplay.ErrorCode = resp2.Status
 
+	defer resp2.Body.Close()
+	var objectback RespAddOrder
+
 	if resp2.Status == "200 OK" {
 		emptydisplay.IsSuccessful = "Y"
-	}
+		var resultado = resp2.Body
+		log.Println(resultado)
 
-	return emptydisplay
+		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
+			log.Println(err)
+		} else {
+
+			var x = objectback.ID
+			log.Println(x)
+		}
+
+	} else {
+		emptydisplay.IsSuccessful = "N"
+
+	}
+	return objectback
 }
 
 // APICallDelete is

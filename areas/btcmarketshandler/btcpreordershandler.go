@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	helper "restauranteweb/areas/helper"
 
 	"github.com/go-redis/redis"
 )
@@ -28,10 +29,11 @@ type PreOrder struct {
 
 // PreOrderList = assemble results of API call to dish list
 //
-func PreOrderList(httpwriter http.ResponseWriter, redisclient *redis.Client) {
+func PreOrderList(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials) {
 
 	// create new template
-	t, _ := template.ParseFiles("templates/btcmarkets/btcindextemplate.html", "templates/btcmarkets/btcmarketslisttemplate.html")
+	// t, _ := template.ParseFiles("templates/btcmarkets/btcindextemplate.html", "templates/btcmarkets/btcmarketslisttemplate.html")
+	t, _ := template.ParseFiles("html/homepage.html", "templates/btcmarkets/btcmarketslisttemplate.html")
 
 	// Get list of orders (api call)
 	//
@@ -40,8 +42,10 @@ func PreOrderList(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	// Assemble the display structure for html template
 	//
 	items := DisplayTemplate{}
-	items.Info.Name = "Order List"
-	items.Info.UserID = "User"
+	items.Info.Name = "Coins"
+	items.Info.Currency = "SUMMARY"
+	items.Info.UserID = credentials.UserID
+	items.Info.Application = credentials.ApplicationID
 
 	var numberoffields = 5
 

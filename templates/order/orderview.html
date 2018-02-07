@@ -3,7 +3,7 @@
 <h1>View Order</h1>
 
 <br>Order Number:<br>
-<input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }}" readonly>
+<input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }}" readonly class="btn btn-md btn-primary">
 <p/>
 <br>Full Name:<br>
 <input type="text" id="orderClientName" name="orderClientName" value="{{ .OrderItem.ClientName }}" readonly>
@@ -50,6 +50,7 @@
         </table>
     </p>
     <button onclick="backToList() ">Back to List</button>
+    <p/>
 </div>
 
 

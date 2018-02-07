@@ -2,33 +2,33 @@
 
 <h1>Add Order</h1>
 
-<br>Order Number:<br>
-<input type="text" id="orderID" name="orderID" readonly>
-<br>Full Name:<br>
-<input type="text" id="orderClientName" name="orderClientName" value="" onchange="getdatetime()" required>
+<br>Current User:<br>
+<label for="userID" id="userID" class="btn btn-md btn-success" >{{ .Info.UserID }}</label>
+<br>Name:<br>
+<input type="text" id="orderClientName" name="orderClientName" value="" onblur="getdatetime()" required>
 <br>Date:<br>
 <input type="date" id="orderDate" name="orderDate" value="" readonly>
 <br>Time:<br>
 <input type="text" id="orderTime" name="orderTime" value="" readonly>
 <br> Status:<br>
-<input type="text" id="status" name="status" value="Not Placed">
+<input type="text" id="status" name="status" value="Not Placed" class="btn btn-md btn-success">
 
-<br> Delivery, Pick-up or Eat-in:<br>
-<select name="EatMode" id="EatMode" value="Eatin">
+<!-- <br> Delivery, Pick-up or Eat-in:<br>
+<select name="EatMode" id="EatMode" value="Eatin" readonly>
     <option value="Eatin">Eat-in</option>
     <option value="Delivery">Delivery</option>
     <option value="Takeaway">Take away</option>
 </select>
-<br>
+<br> -->
 
-<h2>Select Dish, Click Add:</h2>
+<h2>Select your options below:</h2>
 <br>Dish:<br>
 <select name="pratoname" id="pratoname">
         {{range .Pratos }}
             <option value={{.Name}}>{{ .Name }}</option>
         {{end}}
         </select>
-<br>Qty:<br>
+
 <select name="pratoqtd" id="pratoqtd">
             <option value="1">1</option>
             <option value="2">2</option>
@@ -46,6 +46,11 @@
 <button onclick="addNewItem() ">Add</button>
 <button onclick="removeSelectedRows() ">Remove Item</button>
 <button onclick="newOrder() ">New Order</button>
+
+<p/>
+<br>Order Number:<br>
+<input type="text" id="orderID" name="orderID" readonly class="btn btn-md btn-primary">
+<p/>
 
 <table id="myTable" class="table table-striped table-bordered">
     <tr>

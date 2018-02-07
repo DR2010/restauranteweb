@@ -28,6 +28,7 @@ type Dish struct {
 	GlutenFree string        // Gluten free dishes
 	DairyFree  string        // Dairy Free dishes
 	Vegetarian string        // Vegeterian dishes
+	Available  string        // Vegeterian dishes
 }
 
 // ListDishes works
@@ -119,9 +120,16 @@ func FindAPI(redisclient *redis.Client, dishFind string) Dish {
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 
-	urlrequest := apiserver + "/dishfind?dishname=" + dishFind
+	// This is essential! Because if the string has spaces it doesn't work without the escape
+	// Bolo de Cenoura = Bolo+de+Cenoura   >>> Works as a dream!
+	dishfindescaped := url.QueryEscape(dishFind)
+	urlrequest := apiserver + "/dishfind?dishname=" + dishfindescaped
 
-	url := fmt.Sprintf(urlrequest)
+	urlrequestencoded, _ := url.ParseRequestURI(urlrequest)
+	// url := fmt.Sprintf(urlrequest)
+	url := urlrequestencoded.String()
+	// tw.Text = strings.Replace(tw.Text, " ", "+", -1)
+	// urlx := url.QueryEscape(urlrequest)
 
 	var emptydisplay Dish
 

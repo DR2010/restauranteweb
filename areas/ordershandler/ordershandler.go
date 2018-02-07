@@ -20,9 +20,10 @@ import (
 
 // ControllerInfo is
 type ControllerInfo struct {
-	Name    string
-	Message string
-	UserID  string
+	Name          string
+	Message       string
+	UserID        string
+	ApplicationID string //
 }
 
 // Row is
@@ -46,7 +47,7 @@ var mongodbvar helper.DatabaseX
 func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template
-	t, _ := template.ParseFiles("html/index.html", "templates/orderlisttemplate.html")
+	t, _ := template.ParseFiles("html/index.html", "templates/order/orderlisttemplate.html")
 
 	// Get list of orders (api call)
 	//
@@ -89,13 +90,15 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 }
 
 // LoadDisplayForAdd is X
-func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client) {
+func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials) {
 
 	// create new template
-	t, _ := template.ParseFiles("html/index.html", "templates/order/orderadd.html")
+	t, _ := template.ParseFiles("templates/order/indexadd.html", "templates/order/orderadd.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Order Add"
+	items.Info.UserID = credentials.UserID
+	items.Info.ApplicationID = credentials.ApplicationID
 
 	// Retrieve list of dishes by calling API to get dishes
 	//
@@ -197,6 +200,34 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 		t.Execute(httpwriter, items)
 
 	}
+	return
+}
+
+func StartServing(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+
+	orderid := httprequest.URL.Query().Get("orderid")
+
+	orderfind := FindAPI(redisclient, orderid)
+	orderfind.Status = "Serving"
+
+	orderfindbyte, _ := json.Marshal(orderfind)
+
+	APICallUpdate(redisclient, orderfindbyte)
+
+	return
+}
+
+func OrderisReady(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+
+	orderid := httprequest.URL.Query().Get("orderid")
+
+	orderfind := FindAPI(redisclient, orderid)
+	orderfind.Status = "Ready"
+
+	orderfindbyte, _ := json.Marshal(orderfind)
+
+	APICallUpdate(redisclient, orderfindbyte)
+
 	return
 }
 

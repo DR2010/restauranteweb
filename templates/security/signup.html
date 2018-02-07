@@ -25,7 +25,7 @@
 
         Email Address:
         <p/>
-        <input type="text" name="username">
+        <input type="email" name="username">
         <p/> Password:
         <p/>
         <input type="password" name="password">
@@ -48,6 +48,7 @@
     <p>If already registered, login instead:</p>
     <a href="/login" class="btn btn-md btn-success ">Click Here to Login</a>
 
+    {{ template "messagetemplate" . }}
 
     <script type="text/javascript" src="js/Chart.bundle.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>

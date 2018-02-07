@@ -12,6 +12,12 @@
         <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
         <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
     {{end}}
+    {{ if eq .Info.Application "Belnorth" }}
+        <a href="/belnorthgradinglist" class="btn btn-md btn-success">Grading list</a>
+        <a href="/competitionllayerlist" class="btn btn-md btn-success">Preseason list</a>
+        <a href="/payments" class="btn btn-md btn-success">Payments</a>
+    {{end}}
+
     <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
 
 

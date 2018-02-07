@@ -1,10 +1,18 @@
-{{ define "listtemplate" }}
+{{ define "pagebodytemplate" }}
 
 <div id="header" class="navbar navbar-left" id="navbar">
     <a href="/" class="btn btn-md btn-warning ">Main Page</a>
-    <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
-    <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
-    <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+    {{ if eq .Info.Application "Bitcoin" }}
+        <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
+        <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
+    {{end}}
+    
+    {{ if eq .Info.Application "Restaurante" }}
+        <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+        <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
+        <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+    {{end}}
+
     <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
 </div>
 

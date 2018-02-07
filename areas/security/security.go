@@ -15,7 +15,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
-//  LoginUserV2 something
+// LoginUserV2 but not
 func LoginUserV2(redisclient *redis.Client, userid string, password string) security.Credentials {
 
 	mongodbvar := new(helper.DatabaseX)
@@ -60,7 +60,7 @@ func LoginUserV2(redisclient *redis.Client, userid string, password string) secu
 	return response
 }
 
-//  LoginUser something
+// LoginUser something
 func LoginUser(redisclient *redis.Client, userid string, password string) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
@@ -119,6 +119,18 @@ func SignUp(redisclient *redis.Client, userid string, password string, passwordv
 
 	apiURL := mongodbvar.APIServer
 	resource := "/securitysignup"
+
+	if userid == "" {
+		emptydisplay.ErrorCode = "404 Error"
+		emptydisplay.ErrorDescription = "user id not suppplied"
+		return emptydisplay
+	}
+
+	if password == "" {
+		emptydisplay.ErrorCode = "404 Error"
+		emptydisplay.ErrorDescription = "password not suppplied"
+		return emptydisplay
+	}
 
 	if password != passwordvalidate {
 		emptydisplay.ErrorCode = "404 Error"

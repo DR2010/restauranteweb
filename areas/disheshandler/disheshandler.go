@@ -130,7 +130,7 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 }
 
 // LoadDisplayForUpdate is
-func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client, credentials helper.Credentials) {
 
 	httprequest.ParseForm()
 
@@ -145,9 +145,11 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 	}
 
 	type ControllerInfo struct {
-		Name    string
-		Message string
-		UserID  string
+		Name        string
+		Message     string
+		UserID      string
+		Currency    string
+		Application string
 	}
 	type Row struct {
 		Description []string
@@ -164,6 +166,9 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
+	items.Info.Currency = "SUMMARY"
+	items.Info.UserID = credentials.UserID
+	items.Info.Application = credentials.ApplicationID
 
 	items.DishItem = Dish{}
 	items.DishItem.Name = dishselected[0]

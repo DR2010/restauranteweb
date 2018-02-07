@@ -126,10 +126,12 @@ function removeSelectedRows() {
 function saveOrder() {
 
     var orderID = document.getElementById("orderID");
+    var userID = document.getElementById("userID");
     var orderClientName = document.getElementById("orderClientName");
     var orderDate = document.getElementById("orderDate");
     var orderTime = document.getElementById("orderTime");
-    var eatmode = document.getElementById("EatMode");
+    // var eatmode = document.getElementById("EatMode");
+    var eatmode = "EatIn";
     var status = document.getElementById("status");
     var message = document.getElementById("message");
 
@@ -157,11 +159,16 @@ function saveOrder() {
     var pratosselected = new Array();
 
     //loops through rows    
+    // Skip row = 0 pois e' o header.
+    // Porem o novo array comeca com zero
+
+    v = 0;
     for (i = 0; i < rowLength; i++) {
 
         var oCells = oTable.rows.item(i).cells;
         var cellLength = oCells.length;
 
+        var action = "";
         var pratoname = "";
         var quantidade = "";
         var preco = "";
@@ -184,8 +191,13 @@ function saveOrder() {
 
             }
 
-            pratosselected[i] = { pratoname: pratoname, quantidade: quantidade, preco: preco };
         }
+
+        if (action == "") continue;
+        if (action == "Action") continue;
+
+        pratosselected[v] = { pratoname: pratoname, quantidade: quantidade, price: preco };
+        v++;
     }
 
     // Build the object - order
@@ -196,13 +208,14 @@ function saveOrder() {
     status.value = "Placed";
 
     var paramsjson = JSON.stringify({
-        orderID: orderID.value,
-        orderClientName: orderClientName.value,
-        orderDate: orderDate.value,
-        orderTime: orderTime.value,
-        eatmode: eatmode.value,
-        status: status.value,
-        pratos: pratosselected
+        ID: orderID.value,
+        ClientName: orderClientName.value,
+        ClientID: userID.innerText,
+        Date: orderDate.value,
+        Time: orderTime.value,
+        EatMode: eatmode.value,
+        Status: status.value,
+        Items: pratosselected
     });
 
     http.open("POST", url, true);

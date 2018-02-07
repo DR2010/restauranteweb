@@ -62,8 +62,8 @@ var routes = Routes{
 	// ----------------------------------------------------------- Error
 	// Route{"errorpage", "GET", "/login", errorpage},
 	// ----------------------------------------------------------- Security
-	Route{"login", "GET", "/login", loginPageV3},
-	Route{"login", "POST", "/login", loginPageV3},
+	Route{"login", "GET", "/login", loginPageV4},
+	Route{"login", "POST", "/login", loginPageV4},
 	Route{"logout", "GET", "/logout", logoutPage},
 	Route{"signup", "GET", "/signup", signupPage},
 	Route{"signup", "POST", "/signup", signupPage},
@@ -78,10 +78,14 @@ var routes = Routes{
 	Route{"dishdelete", "POST", "/dishdelete", dishdelete},
 	Route{"showcache", "GET", "/showcache", showcache},
 	Route{"errorpage", "POST", "/errorpage", errorpage},
+	// ----------------------------------------------------------- Order
 	Route{"orderlist", "GET", "/orderlist", orderlist},
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
 	Route{"orderadd", "POST", "/orderadd", orderadd},
+	Route{"ordersettoserving", "GET", "/ordersettoserving", ordersettoserving},
+	Route{"ordersettoready", "GET", "/ordersettoready", ordersettoready},
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
+	// ----------------------------------------------------------- Order
 	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},
 	Route{"btcmarketshistorylist", "GET", "/btcmarketshistorylist", btclistcoinshistory},
 	Route{"btcmarketshistorylistdate", "GET", "/btcmarketshistorylistdate", btclistcoinshistorydate},
@@ -90,4 +94,8 @@ var routes = Routes{
 	Route{"btcpreorderadddisplay", "POST", "/btcpreorderadddisplay", btcpreorderadddisplay},
 	Route{"btcpreorderlist", "GET", "/btcpreorderlist", btcpreorderlist},
 	Route{"btcpreorderadd", "POST", "/btcpreorderadd", btcpreorderadd},
+	// -------------------------------------------------------------
+	Route{"belnorthgradinglist", "GET", "/belnorthgradinglist", gradingList},
+	Route{"competitionllayerlist", "GET", "/competitionllayerlist", competitionPlayerList},
+	Route{"payments", "GET", "/payments", paymentList},
 }
