@@ -36,7 +36,7 @@
                         <input type="button" id="orderClientName" name="orderClientName" value="{{ .Status }}" readonly class="btn btn-md btn-warning">
                         {{ else }}
                             {{if eq .Status "Ready" }}
-                            <a href="/orderlist" class="btn btn-md btn-success">{{ .Info }}</a>
+                            <a href="/orderlist" class="btn btn-md btn-info">{{ .Status }}</a>
                             {{ else }}
                             <a href="/orderlist" class="btn btn-md btn-success">{{ .Status }}</a>
                             {{ end }}
