@@ -1,0 +1,33 @@
+db.getSiblingDB("restaurante").getCollection("security").find({});
+it
+db.getSiblingDB("restaurante").getCollection("security").remove( { userid : "" } )
+
+db.getSiblingDB("restaurante").getCollection("dishes").find({});
+it
+db.getSiblingDB("restaurante").getCollection("orders").update( { id : "59526" }, { $set: { status : "Placed"  }  });
+
+db.getSiblingDB("restaurante").getCollection("security").find({});
+
+db.getSiblingDB("restaurante").getCollection("security").remove( { "userid" : "hey@dude" } )
+
+db.getSiblingDB("restaurante").getCollection("dishes").remove( { name : "DanielHardCoded52" } )
+db.getSiblingDB("restaurante").getCollection("dishes").find({ name : "DanielHardCoded52" } );
+
+db.getSiblingDB("restaurante").getCollection("dishes").find({ name : /DanielHardCoded/ } );
+
+db.getSiblingDB("restaurante").getCollection("dishes").remove( { name : /DanielHardCoded/ } )
+
+db.getSiblingDB("restaurante").getCollection("dishes").remove( { name : "DanielHardCoded52" } )
+db.getSiblingDB("restaurante").getCollection("dishes").find({});
+
+
+db.getSiblingDB("restaurante").getCollection("orders").remove( { clientname : "Daniel Festa" } )
+
+db.getSiblingDB("restaurante").getCollection("orders").find({"clientname":""});
+db.getSiblingDB("restaurante").getCollection("orders").remove( {"clientname":""})
+
+db.getSiblingDB("restaurante").getCollection("orders").find({"clientname":""});
+
+db.getSiblingDB("restaurante").getCollection("orders").remove( {"clientname":""})
+
+db.getSiblingDB("restaurante").getCollection("orders").find({});

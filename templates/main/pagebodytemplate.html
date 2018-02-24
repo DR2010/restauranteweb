@@ -1,24 +1,34 @@
 {{ define "pagebodytemplate" }}
 
 <div id="header" class="navbar navbar-left" id="navbar">
-    <a href="/" class="btn btn-md btn-warning ">Main Page</a>
     {{ if eq .Info.Application "Bitcoin" }}
+        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
         <a href="/btcmarketslist" class="btn btn-md btn-primary ">Coins</a>
         <a href="/btcpreorderlist" class="btn btn-md btn-primary ">BTC PreOrder</a>
-    {{end}}
-    
+        {{end}}
+        
     {{ if eq .Info.Application "Restaurante" }}
-        <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
-        <a href="/dishlist" class="btn btn-md btn-success">Dish list</a>
-        <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+        {{ if eq .Info.IsAdmin "Yes" }}
+            <a href="/" class="btn btn-md btn-danger ">Main Page</a>
+            <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+            <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
+            <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
+            <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+        {{ else }}
+            <a href="/" class="btn btn-md btn-warning ">Main Page</a>
+            <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
+            <a href="/orderlist" class="btn btn-md btn-success">Order list</a>
+            <a href="/orderadddisplay" class="btn btn-md btn-success ">Place Order</a>
+        {{ end }}
     {{end}}
+            
     {{ if eq .Info.Application "Belnorth" }}
+            <a href="/" class="btn btn-md btn-warning ">Main Page</a>
         <a href="/belnorthgradinglist" class="btn btn-md btn-success">Grading list</a>
         <a href="/competitionllayerlist" class="btn btn-md btn-success">Preseason list</a>
         <a href="/payments" class="btn btn-md btn-success">Payments</a>
+        <a href="/logout" class="btn btn-md btn-warning ">Logout: {{ .Info.UserID }}</a> 
     {{end}}
-
-    <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
 
 
 </div>
@@ -28,7 +38,7 @@
         <img src="images/crypto.jpeg" alt="Avatar">
     {{end}}
     {{ if eq .Info.Application "Restaurante" }}
-        <img src="images/coffee.png" alt="Avatar" height="250" width="250" >
+        <img src="images/festa-junina.jpg" alt="Avatar" width=300>
     {{end}}
     {{ if eq .Info.Application "Belnorth" }}
         <img src="images/belnorth.jpg" alt="Avatar">
@@ -41,9 +51,9 @@
 </form>
 
 <div id="header" class="navbar navbar-right" id="navbar">
+    <a href="/logout" class="btn btn-md btn-warning ">Logout: {{ .Info.UserID }}</a> 
     <a href="/" class="btn btn-md btn-info">Application: {{ .Info.Application }}</a>
     <a href="/" class="btn btn-md btn-success">User ID: {{ .Info.UserID }}</a>
-
 </div>
 
 {{end}}

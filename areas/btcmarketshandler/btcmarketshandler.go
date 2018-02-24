@@ -376,8 +376,7 @@ func Lpad(s string, pad string, plength int) string {
 	return s
 }
 
-// List = assemble results of API call to dish list
-//
+// TBDList this is test
 func TBDList(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// create new template

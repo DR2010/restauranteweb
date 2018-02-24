@@ -1,0 +1,52 @@
+{{ define "listtemplate" }}
+
+<div id="header" class="navbar navbar-left" id="navbar">
+    {{ if eq .Info.IsAdmin "Yes" }}
+        <a href="/" class="btn btn-md btn-danger ">Main Page</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
+        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
+        <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
+        <a href="/orderadddisplay" class="btn btn-md btn-success ">Place Order</a>
+    {{ else}}
+        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
+        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
+        <a href="/orderadddisplay" class="btn btn-md btn-success ">Place Order</a>
+    {{ end }}
+
+</div>
+
+<p/>
+
+<form action="Submit" method="POST" />
+
+    <myHero>
+        <h3>{{ .Info.Name }}</h3>
+    </myHero>
+    <div style="float:left;" class="table-responsive">
+        <p>
+            <table class="table table-striped table-bordered">
+                <tr>
+                    <th><b>Name</b></th>
+                    <th><b>Image</b></th>
+                    <th><b>Description</b></th>
+                    <th><b>Price</b></th>
+                </tr>
+                {{range .Pratos }}
+                <tr>
+                    <td>{{ .Name }}</td>
+                    <td><img src="images/{{ .ImageName }}" width="200"></td>
+                    <td>{{ .Description }}</td>
+                    <td>{{ .Price }}</td>
+                    </tr>
+                {{end}}
+            </table>
+        </p>
+    </div>
+</form>
+
+<table></table>
+<div id="footer">
+<a href="/logout" class="btn btn-md btn-danger ">Logout: {{ .Info.UserID }}</a> 
+</div>
+{{end}}

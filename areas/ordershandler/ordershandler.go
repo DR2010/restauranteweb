@@ -11,6 +11,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	helper "restauranteweb/areas/helper"
+	"time"
+
+	order "restauranteapi/models"
 
 	"github.com/go-redis/redis"
 )
@@ -23,7 +26,9 @@ type ControllerInfo struct {
 	Name          string
 	Message       string
 	UserID        string
+	UserName      string
 	ApplicationID string //
+	IsAdmin       string //
 }
 
 // Row is
@@ -36,7 +41,8 @@ type DisplayTemplate struct {
 	Info       ControllerInfo
 	FieldNames []string
 	Rows       []Row
-	Orders     []Order
+	Orders     []order.Order
+	OrderItem  order.Order
 	Pratos     []Dish
 }
 
@@ -71,7 +77,55 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 
 	// Set rows to be displayed
 	items.Rows = make([]Row, len(list))
-	items.Orders = make([]Order, len(list))
+	items.Orders = make([]order.Order, len(list))
+	// items.RowID = make([]int, len(dishlist))
+
+	for i := 0; i < len(list); i++ {
+		items.Rows[i] = Row{}
+		items.Rows[i].Description = make([]string, numberoffields)
+		items.Rows[i].Description[0] = list[i].ID
+		items.Rows[i].Description[1] = list[i].ClientName
+		items.Rows[i].Description[2] = list[i].Date
+		items.Rows[i].Description[3] = list[i].Status
+		items.Rows[i].Description[4] = list[i].EatMode
+
+		items.Orders[i] = list[i]
+	}
+
+	t.Execute(httpwriter, items)
+}
+
+// ListV2 = assemble results of API call to dish list
+func ListV2(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials) {
+
+	// create new template
+	t, _ := template.ParseFiles("templates/order/index.html", "templates/order/orderlisttemplate.html")
+
+	// Get list of orders (api call)
+	//
+	var list = APICallListV2(redisclient, credentials)
+
+	// Assemble the display structure for html template
+	//
+	items := DisplayTemplate{}
+	items.Info.Name = "Order List"
+	items.Info.UserID = credentials.UserID
+	items.Info.ApplicationID = "Restaurante"
+	items.Info.IsAdmin = credentials.IsAdmin
+
+	var numberoffields = 5
+
+	// Set colum names
+	items.FieldNames = make([]string, numberoffields)
+	items.FieldNames[0] = "Order ID"
+	items.FieldNames[1] = "Name"
+	items.FieldNames[2] = "Date"
+	items.FieldNames[3] = "Status"
+	items.FieldNames[4] = "Mode"
+
+	// Set rows to be displayed
+	items.Rows = make([]Row, len(list))
+	items.Orders = make([]order.Order, len(list))
 	// items.RowID = make([]int, len(dishlist))
 
 	for i := 0; i < len(list); i++ {
@@ -98,7 +152,9 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client
 	items := DisplayTemplate{}
 	items.Info.Name = "Order Add"
 	items.Info.UserID = credentials.UserID
+	items.Info.UserName = credentials.UserName
 	items.Info.ApplicationID = credentials.ApplicationID
+	items.Info.IsAdmin = credentials.IsAdmin
 
 	// Retrieve list of dishes by calling API to get dishes
 	//
@@ -118,13 +174,14 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client
 }
 
 // LoadDisplayForView is
-func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client, credentials helper.Credentials) {
 
 	httprequest.ParseForm()
 
 	// Get all selected records
 	orderselected := httprequest.Form["dishes"]
 
+	// get the order id from the request
 	orderid := httprequest.URL.Query().Get("orderid")
 
 	if orderid == "" {
@@ -138,31 +195,22 @@ func LoadDisplayForView(httpwriter http.ResponseWriter, httprequest *http.Reques
 		orderid = orderselected[0]
 	}
 
-	type ControllerInfo struct {
-		Name    string
-		Message string
-	}
-	type Row struct {
-		Description []string
-	}
-	type DisplayTemplate struct {
-		Info       ControllerInfo
-		FieldNames []string
-		Rows       []Row
-		OrderItem  Order
-	}
-
 	// create new template
-	t, _ := template.ParseFiles("html/index.html", "templates/order/orderview.html")
+	// t, _ := template.ParseFiles("html/index.html", "templates/order/orderview.html")
+	t, _ := template.ParseFiles("templates/order/indexview.html", "templates/order/orderview.html")
 
 	items := DisplayTemplate{}
 	items.Info.Name = "Order View"
+	items.Info.UserID = credentials.UserID
+	items.Info.UserName = credentials.UserName
+	items.Info.ApplicationID = credentials.ApplicationID
+	items.Info.IsAdmin = credentials.IsAdmin
 
-	items.OrderItem = Order{}
+	items.OrderItem = order.Order{}
 	items.OrderItem.ID = orderid
 	// items.OrderItem.ID = orderselected[0]
 
-	var orderfind = Order{}
+	var orderfind = order.Order{}
 	var ordername = items.OrderItem.ID
 
 	orderfind = FindAPI(redisclient, ordername)
@@ -203,12 +251,14 @@ func Add(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.C
 	return
 }
 
+// StartServing is test
 func StartServing(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
 
 	orderid := httprequest.URL.Query().Get("orderid")
 
 	orderfind := FindAPI(redisclient, orderid)
 	orderfind.Status = "Serving"
+	orderfind.TimeStartServing = time.Now().String()
 
 	orderfindbyte, _ := json.Marshal(orderfind)
 
@@ -217,17 +267,49 @@ func StartServing(httpwriter http.ResponseWriter, httprequest *http.Request, red
 	return
 }
 
+// OrderisReady is test
 func OrderisReady(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
 
 	orderid := httprequest.URL.Query().Get("orderid")
-
 	orderfind := FindAPI(redisclient, orderid)
 	orderfind.Status = "Ready"
+	orderfind.TimeCompleted = time.Now().String()
 
 	orderfindbyte, _ := json.Marshal(orderfind)
 
 	APICallUpdate(redisclient, orderfindbyte)
 
+	return
+}
+
+// OrderisCancelled is to cancel order
+func OrderisCancelled(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) string {
+
+	orderid := httprequest.URL.Query().Get("orderid")
+	orderfind := FindAPI(redisclient, orderid)
+
+	if orderfind.Status == "Placed" {
+		orderfind.Status = "Cancelled"
+		orderfind.TimeCancelled = time.Now().String()
+
+		orderfindbyte, _ := json.Marshal(orderfind)
+
+		APICallUpdate(redisclient, orderfindbyte)
+		return "200 OK"
+	}
+
+	return "401 Order being served"
+}
+
+// OrderisCompleted is completed
+func OrderisCompleted(httpwriter http.ResponseWriter, httprequest *http.Request, redisclient *redis.Client) {
+
+	orderid := httprequest.URL.Query().Get("orderid")
+	orderfind := FindAPI(redisclient, orderid)
+	orderfind.Status = "Completed"
+
+	orderfindbyte, _ := json.Marshal(orderfind)
+	APICallUpdate(redisclient, orderfindbyte)
 	return
 }
 
@@ -257,7 +339,7 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 		Info       ControllerInfo
 		FieldNames []string
 		Rows       []Row
-		OrderItem  Order
+		OrderItem  order.Order
 	}
 
 	// create new template
@@ -266,10 +348,10 @@ func LoadDisplayForUpdate(httpwriter http.ResponseWriter, httprequest *http.Requ
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Add"
 
-	items.OrderItem = Order{}
+	items.OrderItem = order.Order{}
 	items.OrderItem.ID = orderselected[0]
 
-	var objectfind = Order{}
+	var objectfind = order.Order{}
 	var orderid = items.OrderItem.ID
 
 	objectfind = APICallFind(redisclient, orderid)
@@ -307,7 +389,7 @@ func LoadDisplayForDelete(httpwriter http.ResponseWriter, httprequest *http.Requ
 		Info       ControllerInfo
 		FieldNames []string
 		Rows       []Row
-		DishItem   Order
+		DishItem   order.Order
 	}
 
 	// create new template
@@ -316,10 +398,10 @@ func LoadDisplayForDelete(httpwriter http.ResponseWriter, httprequest *http.Requ
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish Delete"
 
-	items.DishItem = Order{}
+	items.DishItem = order.Order{}
 	items.DishItem.ClientID = dishselected[0]
 
-	var dishfind = Order{}
+	var dishfind = order.Order{}
 	var dishname = items.DishItem.ClientID
 
 	dishfind = APICallFind(redisclient, dishname)

@@ -294,9 +294,9 @@ type RespAddOrder struct {
 	ID string
 }
 
-// PreOrderAPIcallAdd is based on Dishes Add - different from Order Add
-// They are different because the order one handles the entire form - is manually handled
+// PreOrderAPICallAdd is based on Dishes Add - different from Order Add
 func PreOrderAPICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
+	// They are different because the order one handles the entire form - is manually handled
 
 	envirvar := new(helper.RestEnvVariables)
 	bodystr := string(bodybyte[:])

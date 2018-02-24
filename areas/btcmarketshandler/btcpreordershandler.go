@@ -81,7 +81,7 @@ func LoadDisplayForAdd(httpwriter http.ResponseWriter, redisclient *redis.Client
 
 }
 
-// Add is
+// BTCPreOrderAdd Add is
 func BTCPreOrderAdd(httpwriter http.ResponseWriter, req *http.Request, redisclient *redis.Client) {
 
 	defer req.Body.Close()

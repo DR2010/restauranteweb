@@ -51,7 +51,6 @@ func LoginUserV2(redisclient *redis.Client, userid string, password string) secu
 
 	if resp2.Status == "200 OK" {
 		return response
-
 	}
 
 	response.ApplicationID = "None"
@@ -110,7 +109,8 @@ func LoginUser(redisclient *redis.Client, userid string, password string) helper
 	return emptydisplay
 }
 
-func SignUp(redisclient *redis.Client, userid string, password string, passwordvalidate string, applicationid string) helper.Resultado {
+// SignUp function
+func SignUp(redisclient *redis.Client, userid string, preferredname string, password string, passwordvalidate string, applicationid string) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 	mongodbvar.APIServer, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -149,6 +149,7 @@ func SignUp(redisclient *redis.Client, userid string, password string, passwordv
 
 	data := url.Values{}
 	data.Add("userid", userid)
+	data.Add("preferredname", preferredname)
 	data.Add("password", passwordhashed)
 	data.Add("passwordvalidate", passwordvalidatehashed)
 	data.Add("applicationid", applicationid)
@@ -206,6 +207,22 @@ func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (stri
 	// The same user can logon in 2 places, I think
 	// Users can't be mixed, I can't trust the variables since it is completely stateless - each request is stateless
 
+	// Machine credentials
+	//
+	clientsecret := httprequest.FormValue("macdantoken")
+
+	if clientsecret != "" {
+		// Issue keys - should be stored in the database API Key or Secret I think
+		//
+		if clientsecret == "BypassSecurity" {
+			var credentialsmachine helper.Credentials
+			credentialsmachine.ApplicationID = "Restaurante"
+			credentialsmachine.UserID = "Machine"
+			credentialsmachine.JWT = clientsecret
+			return "OkToLogin", credentialsmachine
+		}
+	}
+
 	var credentialsnull helper.Credentials
 	credentialsnull.JWT = "Error"
 
@@ -244,8 +261,7 @@ func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (stri
 	return ret, credentials
 }
 
-// this is just a reference key
-// the roles, date and user will be stored at the server
+// Hashstring is just for hashing - only reference key
 func Hashstring(str string) string {
 
 	s := str

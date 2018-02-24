@@ -15,24 +15,28 @@ import (
 
 	"github.com/go-redis/redis"
 
+	dishes "restauranteapi/models"
+
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Dish is to be exported
-type Dish struct {
-	SystemID   bson.ObjectId `json:"id"        bson:"_id,omitempty"`
-	Name       string        // name of the dish - this is the KEY, must be unique
-	Type       string        // type of dish, includes drinks and deserts
-	Price      string        // preco do prato multiplicar por 100 e nao ter digits
-	GlutenFree string        // Gluten free dishes
-	DairyFree  string        // Dairy Free dishes
-	Vegetarian string        // Vegeterian dishes
-	Available  string        // Vegeterian dishes
-}
+// // Dish is to be exported
+// type Dish struct {
+// 	SystemID         bson.ObjectId `json:"id"        bson:"_id,omitempty"`
+// 	Name             string        // name of the dish - this is the KEY, must be unique
+// 	Type             string        // type of dish, includes drinks and deserts
+// 	Price            string        // preco do prato multiplicar por 100 e nao ter digits
+// 	GlutenFree       string        // Gluten free dishes
+// 	DairyFree        string        // Dairy Free dishes
+// 	Vegetarian       string        // Vegeterian dishes
+// 	InitialAvailable string        // Number of items initially available
+// 	CurrentAvailable string        // Currently available
+// 	ImageName        string        // Image Name
+// }
 
 // ListDishes works
-func listdishes(redisclient *redis.Client) []Dish {
+func listdishes(redisclient *redis.Client) []dishes.Dish {
 
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -43,7 +47,7 @@ func listdishes(redisclient *redis.Client) []Dish {
 
 	url := fmt.Sprintf(urlrequest)
 
-	var emptydisplay []Dish
+	var emptydisplay []dishes.Dish
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -62,7 +66,7 @@ func listdishes(redisclient *redis.Client) []Dish {
 
 	defer resp.Body.Close()
 
-	var dishlist []Dish
+	var dishlist []dishes.Dish
 
 	if err := json.NewDecoder(resp.Body).Decode(&dishlist); err != nil {
 		log.Println(err)
@@ -72,7 +76,7 @@ func listdishes(redisclient *redis.Client) []Dish {
 }
 
 // APIcallAdd is
-func APIcallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
+func APIcallAdd(redisclient *redis.Client, dishInsert dishes.Dish) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 
@@ -90,6 +94,11 @@ func APIcallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 	data.Add("dishglutenfree", dishInsert.GlutenFree)
 	data.Add("dishdairyfree", dishInsert.DairyFree)
 	data.Add("dishvegetarian", dishInsert.Vegetarian)
+	data.Add("dishinitialavailable", dishInsert.InitialAvailable)
+	data.Add("dishcurrentavailable", dishInsert.CurrentAvailable)
+	data.Add("dishimagename", dishInsert.ImageName)
+	data.Add("dishdescription", dishInsert.Description)
+	data.Add("dishdescricao", dishInsert.Descricao)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
@@ -115,7 +124,7 @@ func APIcallAdd(redisclient *redis.Client, dishInsert Dish) helper.Resultado {
 }
 
 // FindAPI is to find stuff
-func FindAPI(redisclient *redis.Client, dishFind string) Dish {
+func FindAPI(redisclient *redis.Client, dishFind string) dishes.Dish {
 
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -131,7 +140,7 @@ func FindAPI(redisclient *redis.Client, dishFind string) Dish {
 	// tw.Text = strings.Replace(tw.Text, " ", "+", -1)
 	// urlx := url.QueryEscape(urlrequest)
 
-	var emptydisplay Dish
+	var emptydisplay dishes.Dish
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -150,7 +159,7 @@ func FindAPI(redisclient *redis.Client, dishFind string) Dish {
 
 	defer resp.Body.Close()
 
-	var dishback Dish
+	var dishback dishes.Dish
 
 	if err := json.NewDecoder(resp.Body).Decode(&dishback); err != nil {
 		log.Println(err)
@@ -161,7 +170,7 @@ func FindAPI(redisclient *redis.Client, dishFind string) Dish {
 }
 
 // DishupdateAPI is
-func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado {
+func DishupdateAPI(redisclient *redis.Client, dishUpdate dishes.Dish) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 
@@ -177,6 +186,11 @@ func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado 
 	data.Add("dishglutenfree", dishUpdate.GlutenFree)
 	data.Add("dishdairyfree", dishUpdate.DairyFree)
 	data.Add("dishvegetarian", dishUpdate.Vegetarian)
+	data.Add("dishinitialavailable", dishUpdate.InitialAvailable)
+	data.Add("dishcurrentavailable", dishUpdate.CurrentAvailable)
+	data.Add("dishimagename", dishUpdate.ImageName)
+	data.Add("dishdescription", dishUpdate.Description)
+	data.Add("dishdescricao", dishUpdate.Descricao)
 
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
@@ -198,7 +212,7 @@ func DishupdateAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado 
 }
 
 // DishdeleteAPI is
-func DishdeleteAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado {
+func DishdeleteAPI(redisclient *redis.Client, dishUpdate dishes.Dish) helper.Resultado {
 
 	mongodbvar := new(helper.DatabaseX)
 
@@ -230,7 +244,7 @@ func DishdeleteAPI(redisclient *redis.Client, dishUpdate Dish) helper.Resultado 
 }
 
 // Dishdelete is
-func Dishdelete(database helper.DatabaseX, objectDelete Dish) helper.Resultado {
+func Dishdelete(database helper.DatabaseX, objectDelete dishes.Dish) helper.Resultado {
 
 	database.Collection = "dishes"
 
@@ -289,108 +303,4 @@ func DishDeleteMultipleAPI(redisclient *redis.Client, dishestodelete []string) h
 	}
 
 	return emptydisplay
-}
-
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// This is the section of methods to be deleted when it is all working
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-
-// DishaddTBD is for export
-func DishaddTBD(database helper.DatabaseX, dishInsert Dish) helper.Resultado {
-
-	database.Collection = "dishes"
-
-	session, err := mgo.Dial(database.Location)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	collection := session.DB(database.Database).C(database.Collection)
-
-	err = collection.Insert(dishInsert)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var res helper.Resultado
-	res.ErrorCode = "0001"
-	res.ErrorDescription = "Something Happened"
-	res.IsSuccessful = "Y"
-
-	return res
-}
-
-// DishupdateTBD is
-func DishupdateTBD(database helper.DatabaseX, dishUpdate Dish) helper.Resultado {
-
-	database.Collection = "dishes"
-
-	session, err := mgo.Dial(database.Location)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	collection := session.DB(database.Database).C(database.Collection)
-
-	err = collection.Update(bson.M{"name": dishUpdate.Name}, dishUpdate)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var res helper.Resultado
-	res.ErrorCode = "0001"
-	res.ErrorDescription = "Something Happened"
-	res.IsSuccessful = "Y"
-
-	return res
-}
-
-// FindTBD is to find stuff
-func FindTBD(database helper.DatabaseX, dishFind string) Dish {
-
-	database.Collection = "dishes"
-
-	dishName := dishFind
-	dishnull := Dish{}
-
-	session, err := mgo.Dial(database.Location)
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-
-	c := session.DB(database.Database).C(database.Collection)
-
-	result := []Dish{}
-	err1 := c.Find(bson.M{"name": dishName}).All(&result)
-	if err1 != nil {
-		log.Fatal(err1)
-	}
-
-	var numrecsel = len(result)
-
-	if numrecsel <= 0 {
-		return dishnull
-	}
-
-	return result[0]
 }

@@ -1,57 +1,97 @@
 {{define "listtemplate"}}
 
-<h1>View Order</h1>
+<div id="header" class="navbar navbar-left" id="navbar">
+        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
+        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dish Image</a>
+       
+        {{ if eq .Info.IsAdmin "Yes" }}
+        <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
+        <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
+        {{ end }}
+        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+</div>
+<p/>
+
+<h2>{{ .Info.Name }} - {{ .Info.UserID }}</h2>
 
 <br>Order Number:<br>
 <input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }}" readonly class="btn btn-md btn-primary">
 <p/>
+<br>Order Status:<br>
+
+{{if eq .OrderItem.Status "Placed" }}
+    <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-danger">
+{{ else }}
+    {{if eq .OrderItem.Status "Ready" }}
+    <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-success">
+    {{ else }}
+    <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-warning">
+    {{ end }}
+{{ end }}
+
+<p/>
 <br>Full Name:<br>
 <input type="text" id="orderClientName" name="orderClientName" value="{{ .OrderItem.ClientName }}" readonly>
 <p/>
-<br> Order date:<br>
-<input type="text" id="orderDate" name="orderDate" value="{{ .OrderItem.Date }}" readonly>
-<p/>
-<br> Order time:<br>
-<input type="text" id="orderTime" name="orderTime" value="{{ .OrderItem.Time }}" readonly>
-<p/>
-<br> Total:<br>
-<input type="text" id="orderTotal" name="orderTotal" value="{{ .OrderItem.TotalGeral }}" readonly>
-<p/>
 
-<br> Delivery, Pick-up or Eat-in:<br>
-<select name="EatMode" id="EatMode" value="{{ .OrderItem.EatMode }}">
+<div style="float:left;" class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <tr>
+            <th>Dish</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+        </tr>
+        {{range .OrderItem.Items }}
+        <tr>
+            <td>{{ .PratoName }}</td>
+            <td>{{ .Quantidade }}</td>
+            <td>{{ .Price }}</td>
+            <td>{{ .Total }}</td>
+        </tr>
+        {{end}}
+    </table>
+    <!-- <button onclick="backToList() ">Back to List</button>
+    <p/> -->
+    <p/>
+</div>
+<p/>
+<div>
+<!-- Only here to prevent total from going up next to the table above -->
+    <table> </table>
+    <br> Total:<br>
+    <input type="text" id="orderTotal" name="orderTotal" value="{{ .OrderItem.TotalGeral }}" readonly>
+    <p/>
+</div>
+
+<div>
+
+    {{ if eq .Info.IsAdmin "Yes" }}
+        <a href="/ordersettoserving?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-primary">Serving</a>
+        <a href="/ordersettoready?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-primary">Set to Ready</a>
+    {{ end }}
+    {{if eq .OrderItem.Status "Placed" }}
+        <a href="/ordercancel?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-danger">Cancel Order</a>
+    {{ end }}
+
+
+    <p/>
+    <br> Order date:<br>
+    <input type="text" id="orderDate" name="orderDate" value="{{ .OrderItem.Date }}" readonly>
+    <p/>
+    <br> Order time:<br>
+    <input type="text" id="orderTime" name="orderTime" value="{{ .OrderItem.Time }}" readonly>
+    <p/>
+    
+
+</div>
+
+<select name="EatMode" id="EatMode" value="{{ .OrderItem.EatMode }}" hidden>
     <option value="Eatin">Eat-in</option>
     <option value="Delivery">Delivery</option>
     <option value="Takeaway">Take away</option>
 </select>
 <br>
-
-<p/>
-
-<div style="float:left;" class="table-responsive">
-    <p>
-        <table class="table table-striped table-bordered">
-            <tr>
-                <th>ID</th>
-                <th>Dish</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-            {{range .OrderItem.Items }}
-            <tr>
-                <td>{{ .ID }}</td>
-                <td>{{ .PratoName }}</td>
-                <td>{{ .Quantidade }}</td>
-                <td>{{ .Price }}</td>
-                <td>{{ .Total }}</td>
-            </tr>
-            {{end}}
-        </table>
-    </p>
-    <button onclick="backToList() ">Back to List</button>
-    <p/>
-</div>
-
 
 <p/> {{end}}

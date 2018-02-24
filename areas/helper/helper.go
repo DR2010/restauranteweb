@@ -43,6 +43,7 @@ type Credentials struct {
 	Roles         []string         // Y or N
 	ClaimSet      []security.Claim // Y or N
 	ApplicationID string           //
+	IsAdmin       string           //
 }
 
 // Claim is
@@ -74,6 +75,9 @@ type RestEnvVariables struct {
 	ConfigFileFound       string // collection name
 	ApplicationID         string // collection name
 	UserID                string // collection name
+	AppFestaJuninaEnabled string
+	AppBelnorthEnabled    string
+	AppBitcoinEnabled     string
 }
 
 // Readfileintostruct is

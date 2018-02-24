@@ -23,6 +23,7 @@ type ControllerInfo struct {
 	FromDate    string
 	ToDate      string
 	Application string
+	IsAdmin     string //
 }
 
 // Row is
@@ -50,6 +51,7 @@ func HomePage(httpwriter http.ResponseWriter, redisclient *redis.Client, credent
 	items.Info.Name = "Root"
 	items.Info.UserID = credentials.UserID
 	items.Info.Application = credentials.ApplicationID
+	items.Info.IsAdmin = credentials.IsAdmin
 
 	t.Execute(httpwriter, items)
 }

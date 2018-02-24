@@ -8,37 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"mongodb/dishes"
 	"net/http"
 	"net/url"
 	helper "restauranteweb/areas/helper"
 	"strings"
 
+	order "restauranteapi/models"
+
 	"github.com/go-redis/redis"
 
 	"gopkg.in/mgo.v2/bson"
 )
-
-// Order is to be
-type Order struct {
-	SystemID   bson.ObjectId `json:"id"        bson:"_id,omitempty"`
-	ID         string        // random ID for order, yet to define algorithm
-	ClientName string        // Client Name
-	ClientID   string        // Client ID in case they logon
-	Atendente  string        // Pessoa atendendo
-	Date       string        // Order Date
-	Time       string        // Order Time
-	Status     string        // Open, Completed, Cancelled
-	EatMode    string        // EatIn, TakeAway, Delivery
-	TotalGeral string        // Delivery phone number
-	Items      []Item
-}
-
-// BTCCoin is to be
-type BTCCoin struct {
-	balance      string // balance
-	pendingFunds string // pend
-	currency     string // curren
-}
 
 // Dish is to be exported
 type Dish struct {
@@ -49,18 +30,6 @@ type Dish struct {
 	GlutenFree string        // Gluten free dishes
 	DairyFree  string        // Dairy Free dishes
 	Vegetarian string        // Vegeterian dishes
-}
-
-// Item represents a single item of an order
-type Item struct {
-	ID         string // Sequential number of the item
-	PratoName  string // Dish ID or unique name from "Dishes"
-	GlutenFree string // Just Yes or No in case the dish has gluten free options
-	DiaryFree  string // Just Yes or No in case the dish has this option
-	Price      string // Individual price
-	Quantidade string // Individual price
-	Total      string // Total Price
-	Tax        string // GST
 }
 
 // SearchCriteria is what the client wants
@@ -84,7 +53,7 @@ type RespAddOrder struct {
 }
 
 // FindAPI is to find stuff
-func FindAPI(redisclient *redis.Client, orderFind string) Order {
+func FindAPI(redisclient *redis.Client, orderFind string) order.Order {
 
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -93,7 +62,7 @@ func FindAPI(redisclient *redis.Client, orderFind string) Order {
 
 	url := fmt.Sprintf(urlrequest)
 
-	var emptydisplay Order
+	var emptydisplay order.Order
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -112,7 +81,7 @@ func FindAPI(redisclient *redis.Client, orderFind string) Order {
 
 	defer resp.Body.Close()
 
-	var orderback Order
+	var orderback order.Order
 
 	if err := json.NewDecoder(resp.Body).Decode(&orderback); err != nil {
 		log.Println(err)
@@ -124,10 +93,10 @@ func FindAPI(redisclient *redis.Client, orderFind string) Order {
 
 // APICallList works
 // Order List
-func APICallList(redisclient *redis.Client) []Order {
+func APICallList(redisclient *redis.Client) []order.Order {
 
 	var apiserver string
-	var emptydisplay []Order
+	var emptydisplay []order.Order
 
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
 	urlrequest := apiserver + "/orderlist"
@@ -152,7 +121,58 @@ func APICallList(redisclient *redis.Client) []Order {
 	defer resp.Body.Close()
 
 	// return list of orders
-	var list []Order
+	var list []order.Order
+
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		log.Println(err)
+	}
+
+	return list
+}
+
+// APICallListV2 works
+// Order List
+func APICallListV2(redisclient *redis.Client, credentials helper.Credentials) []order.Order {
+
+	var apiserver string
+	var emptydisplay []order.Order
+
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/orderlist?clientid=" + credentials.UserID
+
+	// Check if user is admin
+	for x := 0; x < len(credentials.ClaimSet); x++ {
+		if credentials.ClaimSet[x].Type == "USERTYPE" {
+			if credentials.ClaimSet[x].Value == "ADMIN" {
+				// list all if user is admin
+				urlrequest = apiserver + "/orderlist"
+				break
+			}
+		}
+	}
+
+	url := fmt.Sprintf(urlrequest)
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	// return list of orders
+	var list []order.Order
 
 	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
 		log.Println(err)
@@ -208,7 +228,7 @@ func APICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
 }
 
 // APICallFind is to find stuff
-func APICallFind(redisclient *redis.Client, objectfind string) Order {
+func APICallFind(redisclient *redis.Client, objectfind string) order.Order {
 
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -217,7 +237,7 @@ func APICallFind(redisclient *redis.Client, objectfind string) Order {
 
 	url := fmt.Sprintf(urlrequest)
 
-	var emptydisplay Order
+	var emptydisplay order.Order
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -236,7 +256,7 @@ func APICallFind(redisclient *redis.Client, objectfind string) Order {
 
 	defer resp.Body.Close()
 
-	var objectback Order
+	var objectback order.Order
 
 	if err := json.NewDecoder(resp.Body).Decode(&objectback); err != nil {
 		log.Println(err)
@@ -356,8 +376,8 @@ func APICallDeleteMany(redisclient *redis.Client, dishestodelete []string) helpe
 	return emptydisplay
 }
 
-// ListDishes works
-func Listdishes(redisclient *redis.Client) []Dish {
+// Listdishes works
+func Listdishes(redisclient *redis.Client) []dishes.Dish {
 
 	var apiserver string
 	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
@@ -368,7 +388,7 @@ func Listdishes(redisclient *redis.Client) []Dish {
 
 	url := fmt.Sprintf(urlrequest)
 
-	var emptydisplay []Dish
+	var emptydisplay []dishes.Dish
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -387,51 +407,11 @@ func Listdishes(redisclient *redis.Client) []Dish {
 
 	defer resp.Body.Close()
 
-	var dishlist []Dish
+	var dishlist []dishes.Dish
 
 	if err := json.NewDecoder(resp.Body).Decode(&dishlist); err != nil {
 		log.Println(err)
 	}
 
 	return dishlist
-}
-
-// APIBTCMarketsList works
-func APIBTCMarketsList(redisclient *redis.Client) []BTCCoin {
-
-	var apiserver string
-	var emptydisplay []BTCCoin
-
-	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
-	urlrequest := apiserver + "/orderlist"
-
-	urlrequest = "http://pontinhoapi.azurewebsites.net/api/btcmarkets"
-
-	url := fmt.Sprintf(urlrequest)
-
-	// Build the request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatal("NewRequest: ", err)
-		return emptydisplay
-	}
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Do: ", err)
-		return emptydisplay
-	}
-
-	defer resp.Body.Close()
-
-	// return list of orders
-	var list []BTCCoin
-
-	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
-		log.Println(err)
-	}
-
-	return list
 }

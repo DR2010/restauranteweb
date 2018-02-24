@@ -58,7 +58,7 @@ func XNewRouter() *mux.Router {
 
 var routes = Routes{
 	// ----------------------------------------------------------- Root
-	Route{"Index", "GET", "/", root3},
+	Route{"Index", "GET", "/", root},
 	// ----------------------------------------------------------- Error
 	// Route{"errorpage", "GET", "/login", errorpage},
 	// ----------------------------------------------------------- Security
@@ -69,6 +69,7 @@ var routes = Routes{
 	Route{"signup", "POST", "/signup", signupPage},
 	// ----------------------------------------------------------- Dishes
 	Route{"dishlist", "GET", "/dishlist", dishlist},
+	Route{"dishlistpictures", "GET", "/dishlistpictures", dishlistpictures},
 	Route{"dishadddisplay", "POST", "/dishadddisplay", dishadddisplay},
 	Route{"dishupdatedisplay", "POST", "/dishupdatedisplay", dishupdatedisplay},
 	Route{"dishdeletedisplay", "POST", "/dishdeletedisplay", dishdeletedisplay},
@@ -81,9 +82,11 @@ var routes = Routes{
 	// ----------------------------------------------------------- Order
 	Route{"orderlist", "GET", "/orderlist", orderlist},
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
+	Route{"orderadddisplay", "GET", "/orderadddisplay", orderadddisplay},
 	Route{"orderadd", "POST", "/orderadd", orderadd},
 	Route{"ordersettoserving", "GET", "/ordersettoserving", ordersettoserving},
 	Route{"ordersettoready", "GET", "/ordersettoready", ordersettoready},
+	Route{"ordercancel", "GET", "/ordercancel", ordercancel},
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
 	// ----------------------------------------------------------- Order
 	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},

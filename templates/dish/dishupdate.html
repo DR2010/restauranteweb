@@ -3,35 +3,97 @@
 <h1>Update Dish</h1>
 <form method="POST" action="/dishupdate">
     <div>
-        <p/> <b>Dish Type:</b>
+
+        <br><b>Dish Type: </b>
         <p/>
-        <input type="text" name="dishtype" value="{{ .DishItem.Type }}" readonly>
+        <select name="dishtype" id="dishtype">
+            {{ if eq .DishItem.Type "Sweet"}}
+                <option selected="selected">Sweet</option>
+            {{ else }}
+                <option value="Sweet">Sweet</option>
+            {{ end }}
+
+            {{ if eq .DishItem.Type "Drink"}}
+                <option selected="selected">Drink</option>
+            {{ else }}
+                <option value="Drink">Drink</option>
+            {{ end }}
+
+            {{ if eq .DishItem.Type "Savoury"}}
+                <option selected="selected">Savoury</option>
+            {{ else }}
+                <option value="Savoury">Savoury</option>
+            {{ end }}
+        </select>
+        <br>
+
+        
 
         <p/> <b>Dish Name:</b>
         <p/>
-        <input type="text" name="dishname" value="{{ .DishItem.Name }}" readonly>
+        <input type="text" name="dishname" value="{{ .DishItem.Name }}">
 
         <p/> <b>Dish Price:</b>
         <p/>
         <input type="text" name="dishprice" value="{{ .DishItem.Price }}">
 
-        <p/> <b>Gluten Free:</b>
         <p/>
-        <input type="text" name="dishglutenfree" value="{{ .DishItem.GlutenFree }}">
+        <br><b>Gluten Free: </b>
+        <select name="dishglutenfree" id="dishglutenfree" value="{{ .DishItem.GlutenFree }}">
+            {{ if eq .DishItem.GlutenFree "Yes"}}
+                <option selected="selected">Yes</option>
+                <option value="No">No</option>
+            {{ else }}
+                <option value="Yes">Yes</option>
+                <option selected="selected">No</option>
+            {{ end }}
+        </select>
+        <br>
 
-        <p/> <b>Dairy Free:</b>
+        <br><b>Dairy Free: </b>
+        <select name="dishdairyfree" id="dishdairyfree" value="{{ .DishItem.DairyFree }}">
+            {{ if eq .DishItem.DairyFree "Yes"}}
+                <option selected="selected">Yes</option>
+                <option value="No">No</option>
+            {{ else }}
+                <option value="Yes">Yes</option>
+                <option selected="selected">No</option>
+            {{ end }}
+        </select>
+        <br>
+
+        <br><b>Vegetarian: </b>
+        <select name="dishvegetarian" id="dishvegetarian" value="{{ .DishItem.Vegetarian }}">
+            {{ if eq .DishItem.Vegetarian "Yes"}}
+                <option selected="selected">Yes</option>
+                <option value="No">No</option>
+            {{ else }}
+                <option value="Yes">Yes</option>
+                <option selected="selected">No</option>
+            {{ end }}
+        </select>
+        <br>
+
+        <p/> <b>Initial - Available:</b>
         <p/>
-        <input type="text" name="dishdairyfree" value="{{ .DishItem.DairyFree }}">
+        <input type="text" id="dishinitialavailable" name="dishinitialavailable" value="{{ .DishItem.InitialAvailable }}">
 
-        <p/> <b>Vegetarian:</b>
+        <p/> <b>Current - Available:</b>
         <p/>
-        <input type="text" name="dishvegetarian" value="{{ .DishItem.Vegetarian }}">
+        <input type="text" id="dishcurrentavailable" name="dishcurrentavailable" value="{{ .DishItem.CurrentAvailable }}">
 
-
-        <p/> <b>Available Quantity:</b>
+        <p/> <b>Image Name:</b>
         <p/>
-        <input type="text" name="dishvegetarian" value="{{ .DishItem.Available }}">
-        
+        <input type="text" id="imagename" name="imagename" value="{{ .DishItem.ImageName }}">
+
+        <p/> <b>Description:</b>
+        <p/>
+        <input type="text" id="dishdescription" name="dishdescription" value="{{ .DishItem.Description }}">
+
+        <p/> <b>Descricao:</b>
+        <p/>
+        <input type="text" id="dishdescricao" name="dishdescricao" value="{{ .DishItem.Descricao }}">
+
         <p/>
         <input type="submit" formaction="/dishupdate" value="Submit">
         <p/>

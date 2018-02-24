@@ -1,3 +1,5 @@
+// Global variables, storing prices in memory before using cached data or cookie.
+//
 var prato
 
 function danielonload() {
@@ -6,15 +8,20 @@ function danielonload() {
     showlinechart();
 }
 
+function onloadorderadd() {
+    getdatetime();
+    loadPrices();
+}
+
 // --------------------------------------
 //    Load Prices in Memory or Cache
 // --------------------------------------
 function loadPrices() {
     prato = new Array();
-    prato[0] = { name: "Coxinha", price: "7" };
-    prato[1] = { name: "BolodeCenoura", price: "3" };
-    prato[2] = { name: "Refrigerante", price: "5" };
-    prato[3] = { name: "BolodeAipim", price: "9" };
+    prato[0] = { name: "Coxinha", price: "3.5" };
+    prato[1] = { name: "BolodeCenoura", price: "4" };
+    prato[2] = { name: "Refrigerante", price: "4.5" };
+    prato[3] = { name: "BolodeAipim", price: "4.5" };
     prato[4] = { name: "PasteldeQueijo", price: "5" };
     prato[5] = { name: "Brigadeiro", price: "8" };
 }
@@ -24,11 +31,14 @@ function loadPrices() {
 // --------------------------------------
 function addNewItem() {
 
-    loadPrices()
+    // loadPrices()
 
     var table = document.getElementById("myTable");
     var valueplate = document.getElementById("pratoname");
     var plateqtd = document.getElementById("pratoqtd");
+
+    // Get price
+    var pricefromhtml = document.getElementById(valueplate.value);
 
     var lastRow = table.rows[table.rows.length];
     var lastRowNumber = table.rows.length;
@@ -39,15 +49,31 @@ function addNewItem() {
     var cell1 = row.insertCell(1);
     var cell2 = row.insertCell(2);
     var cell3 = row.insertCell(3);
+    var cell4 = row.insertCell(4);
 
     x = '<input type=checkbox name=row' + lastRowNumber + ' id=checkitem' + lastRowNumber + ' value=' + valueplate + '>';
 
+    var preco = parseFloat(pricefromhtml.value);
+    var quantidade = parseFloat(plateqtd.value);
+    var total = preco * quantidade;
+
     var sel = document.getElementById("pratoname").selectedIndex;
+
+    // Checkbox first column 0
+    // Dish name column 1
+    // Quantidade column 2
+    // Preco column 3
+    // Total calculado  column 4
+
     cell0.innerHTML = x;
-    cell1.innerHTML = valueplate.nodeValue;
     cell1.innerHTML = valueplate.options[sel].text;
+    // cell1.innerHTML = valueplate.value;
+    // cell1.innerHTML = valueplate.nodeValue;
     cell2.innerHTML = plateqtd.value;
-    cell3.innerHTML = plateqtd.value * prato[sel].price;
+    cell3.innerHTML = pricefromhtml.value;
+    cell4.innerHTML = total;
+    // cell3.innerHTML = plateqtd.value * pricefromhtml.value;
+    // cell3.innerHTML = plateqtd.value * prato[sel].price;
 }
 
 // --------------------------------------
@@ -172,7 +198,13 @@ function saveOrder() {
         var pratoname = "";
         var quantidade = "";
         var preco = "";
+        var total = "";
 
+    // Checkbox first column 0
+    // Dish name column 1
+    // Quantidade column 2
+    // Preco column 3
+    // Total calculado  column 4
 
         for (var j = 0; j < cellLength; j++) {
 
@@ -188,7 +220,9 @@ function saveOrder() {
             }
             if (j == 3) {
                 preco = cellVal;
-
+            }
+            if (j == 4) {
+                total = cellVal;
             }
 
         }
@@ -196,7 +230,7 @@ function saveOrder() {
         if (action == "") continue;
         if (action == "Action") continue;
 
-        pratosselected[v] = { pratoname: pratoname, quantidade: quantidade, price: preco };
+        pratosselected[v] = { pratoname: pratoname, quantidade: quantidade, price: preco, total: total };
         v++;
     }
 
