@@ -1,36 +1,34 @@
 {{ define "signupdetailtemplate" }}
 <body ng-controller="tasksController" onload="danielonload()">
     <div id="header" class="navbar navbar-left" id="navbar">
-        <a href="/" class="btn btn-md btn-warning">Main Page</a>
+        <a href="/" class="btn btn-md btn-success">Home</a>
     </div>
-    <myHero>
-        <h2>New User</h2>
-    </myHero>
+    <h2>New User</h2>
 
     <form method="POST" action="/signup">
 
         Email Address:
         <p/>
-        <input type="email" name="username">
+        <input type="email" name="username" placeholder="Email address">
         <p/> Preferred Name:
         <p/>
-        <input type="text" name="preferredname">
+        <input type="text" name="preferredname" placeholder="Your name">
         <p/> Password:
         <p/>
-        <input type="password" name="password">
+        <input type="password" name="password" placeholder="Password">
         <p/> Re-type Password:
         <p/>
-        <input type="password" name="passwordvalidate">
+        <input type="password" name="passwordvalidate" placeholder="Password">
         <p/>
-        <br>Application:<br>
+        <!-- <br>Application:<br>
         <select name="applicationid" id="applicationid">
             <option value="Restaurante">Festa Junina</option>
             <option value="Belnorth">Belnorth</option>
             <option value="Bitcoin">Bitcoin</option>
         </select>
-        <br>
+        <br> -->
         <p/>
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" class="btn btn-md btn-success" >
         <p/>
     </form>
 

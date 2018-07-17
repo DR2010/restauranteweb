@@ -4,12 +4,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	helper "festajuninaweb/areas/helper"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"restauranteapi/security"
-	helper "restauranteweb/areas/helper"
 	"strings"
 
 	"github.com/go-redis/redis"
@@ -202,6 +202,13 @@ func ValidateToken(redisclient *redis.Client, httprequest *http.Request) string 
 
 // ValidateTokenV2 will get info from cache
 func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (string, helper.Credentials) {
+	var credentials helper.Credentials
+
+	credentials.ApplicationID = "Restaurante"
+	credentials.UserID = "Anonymous"
+	credentials.UserName = "Anonymous"
+	credentials.IsAdmin = "No"
+	credentials.IsAnonymous = "Yes"
 
 	// The system will store an object in cache and the key must be the used ID
 	// The same user can logon in 2 places, I think
@@ -223,8 +230,7 @@ func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (stri
 		}
 	}
 
-	var credentialsnull helper.Credentials
-	credentialsnull.JWT = "Error"
+	credentials.JWT = "Error"
 
 	jwtincookie := ""
 	useridincookie := ""
@@ -232,14 +238,25 @@ func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (stri
 	cookiekeyJWT := "DanBTCjwt"
 	cookiekeyUSERID := "DanBTCuserid"
 
-	cookieJWT, _ := httprequest.Cookie(cookiekeyJWT)
-	if cookieJWT == nil {
-		return "NotOkToLogin", credentialsnull
+	cookieJWT, err := httprequest.Cookie(cookiekeyJWT)
+
+	if err != nil {
+		log.Println(err)
+		log.Println("Not found Cookie: " + cookiekeyJWT)
 	}
 
-	cookieUSERID, _ := httprequest.Cookie(cookiekeyUSERID)
+	if cookieJWT == nil {
+		return "NotOkToLogin", credentials
+	}
+
+	cookieUSERID, err2 := httprequest.Cookie(cookiekeyUSERID)
+	if err2 != nil {
+		log.Println(err2)
+		log.Println("Not found Cookie: " + cookiekeyUSERID)
+	}
+
 	if cookieUSERID == nil {
-		return "NotOkToLogin", credentialsnull
+		return "NotOkToLogin", credentials
 	}
 
 	jwtincookie = cookieJWT.Value
@@ -250,12 +267,17 @@ func ValidateTokenV2(redisclient *redis.Client, httprequest *http.Request) (stri
 	tokenstored, _ := redisclient.Get(keyredis).Result()
 	tokenstoredbytes := []byte(tokenstored)
 
-	var credentials helper.Credentials
 	_ = json.Unmarshal(tokenstoredbytes, &credentials)
 
 	var ret = "NotOkToLogin"
 	if credentials.JWT == jwtincookie {
+		credentials.IsAnonymous = "No"
 		ret = "OkToLogin"
+	} else {
+		credentials.ApplicationID = "Restaurante"
+		credentials.UserID = "Anonymous"
+		credentials.UserName = "Anonymous"
+		credentials.IsAdmin = "No"
 	}
 
 	return ret, credentials

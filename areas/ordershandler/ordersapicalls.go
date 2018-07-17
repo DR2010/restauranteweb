@@ -6,12 +6,12 @@ package ordershandler
 
 import (
 	"encoding/json"
+	helper "festajuninaweb/areas/helper"
 	"fmt"
 	"log"
 	"mongodb/dishes"
 	"net/http"
 	"net/url"
-	helper "restauranteweb/areas/helper"
 	"strings"
 
 	order "restauranteapi/models"
@@ -47,9 +47,9 @@ type SearchCriteria struct {
 	DeliveryContactPhone string // Delivery phone number
 }
 
-// RespAddOrder is
 type RespAddOrder struct {
-	ID string
+	ID       string
+	ClientID string
 }
 
 // FindAPI is to find stuff
@@ -181,6 +181,84 @@ func APICallListV2(redisclient *redis.Client, credentials helper.Credentials) []
 	return list
 }
 
+// APICallListCompleted is completed
+func APICallListCompleted(redisclient *redis.Client, credentials helper.Credentials) []order.Order {
+
+	var apiserver string
+	var emptydisplay []order.Order
+
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/ordercompleted"
+
+	url := fmt.Sprintf(urlrequest)
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	// return list of orders
+	var list []order.Order
+
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		log.Println(err)
+	}
+
+	return list
+}
+
+// APICallListStatus is completed
+func APICallListStatus(redisclient *redis.Client, credentials helper.Credentials, status string) []order.Order {
+
+	var apiserver string
+	var emptydisplay []order.Order
+
+	apiserver, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	urlrequest := apiserver + "/orderstatus?status=" + status
+
+	url := fmt.Sprintf(urlrequest)
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return emptydisplay
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return emptydisplay
+	}
+
+	defer resp.Body.Close()
+
+	// return list of orders
+	var list []order.Order
+
+	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
+		log.Println(err)
+	}
+
+	return list
+}
+
 // APICallAdd is
 func APICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
 
@@ -218,6 +296,55 @@ func APICallAdd(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
 
 			var x = objectback.ID
 			log.Println(x)
+		}
+
+	} else {
+		emptydisplay.IsSuccessful = "N"
+
+	}
+	return objectback
+}
+
+// APICallAddOrderClient is designed to add an order and an anonymous client IF required (id not passed in)!
+func APICallAddOrderClient(redisclient *redis.Client, bodybyte []byte) RespAddOrder {
+
+	envirvar := new(helper.RestEnvVariables)
+	bodystr := string(bodybyte[:])
+
+	envirvar.APIAPIServerIPAddress, _ = redisclient.Get("Web.APIServer.IPAddress").Result()
+
+	// mongodbvar.APIServer = "http://localhost:1520/"
+
+	apiURL := envirvar.APIAPIServerIPAddress
+	resource := "/APIorderadd"
+
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	body := strings.NewReader(bodystr)
+	resp2, err := http.Post(urlStr, "application/x-www-form-urlencoded", body)
+
+	var emptydisplay helper.Resultado
+	emptydisplay.ErrorCode = resp2.Status
+
+	defer resp2.Body.Close()
+	var objectback RespAddOrder
+
+	if resp2.Status == "200 OK" {
+		emptydisplay.IsSuccessful = "Y"
+		var resultado = resp2.Body
+		log.Println(resultado)
+
+		if err = json.NewDecoder(resp2.Body).Decode(&objectback); err != nil {
+			log.Println(err)
+		} else {
+
+			var orderid = objectback.ID
+			var clientid = objectback.ClientID
+			log.Println("Order ID: " + orderid)
+			log.Println("Client ID: " + clientid)
+
 		}
 
 	} else {

@@ -19,6 +19,12 @@ myHero {
     height: 30px;
 }
 
+.pedidonumero {
+    background-color:  #57d3b8;
+    width: 100%;
+    font-size:36px;
+}
+
 #container {
     width: 300px;
     background-color: #ffcc33;
@@ -76,9 +82,9 @@ label {
 
 input {
     font: arial, sans-serif;
-    border: 5px solid #dddddd;
+    border: 1px solid #dddddd;
     text-align: center;
-    margin-right: 30px;
+    margin-right: 50px;
     padding: 8px;
     font-size: 16px;
     font-family: 'Lucida Casual', 'Comic Sans MS';

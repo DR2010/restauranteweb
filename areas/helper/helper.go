@@ -40,10 +40,12 @@ type Credentials struct {
 	KeyJWT        string
 	JWT           string
 	Expiry        string
+	CentroID      string
 	Roles         []string         // Y or N
 	ClaimSet      []security.Claim // Y or N
 	ApplicationID string           //
 	IsAdmin       string           //
+	IsAnonymous   string           //
 }
 
 // Claim is

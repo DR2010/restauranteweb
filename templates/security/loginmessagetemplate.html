@@ -1,6 +1,10 @@
 {{ define "messagetemplate" }}
-    <p/>
-    <p/>
-    <input type="text" name="message" readonly value={{ .Info.Message }}>
-    <p/>
+
+<p></p>
+
+<br> Message:<br>
+<textarea rows="4" cols="50" id="message">
+{{ .Info.Message }}
+</textarea>
+
 {{ end }}

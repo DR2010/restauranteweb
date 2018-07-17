@@ -1,0 +1,7 @@
+1) Add support for Organisation and multiple events
+2) Add support for Users belonging to different Organisations
+3) Users to be able to place an order must login?!  Think through
+3.1) ... or allow both types of Users
+4) Make Admin able to change the user type on screen
+4.1) This is for setting up different types of roles
+5) Create option to load data from order into MySQL directly for reporting

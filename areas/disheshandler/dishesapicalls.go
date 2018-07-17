@@ -6,11 +6,11 @@ package disheshandler
 
 import (
 	"encoding/json"
+	helper "festajuninaweb/areas/helper"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	helper "restauranteweb/areas/helper"
 	"strings"
 
 	"github.com/go-redis/redis"

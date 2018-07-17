@@ -6,10 +6,10 @@ package cachehandler
 
 import (
 	"encoding/json"
+	"festajuninaweb/areas/helper"
 	"fmt"
 	"log"
 	"net/http"
-	"restauranteweb/areas/helper"
 
 	"github.com/go-redis/redis"
 )

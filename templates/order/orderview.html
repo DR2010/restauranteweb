@@ -1,22 +1,30 @@
 {{define "listtemplate"}}
 
 <div id="header" class="navbar navbar-left" id="navbar">
-        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
-        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
-        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dish Image</a>
-       
         {{ if eq .Info.IsAdmin "Yes" }}
-        <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
+        <a href="/" class="btn btn-md btn-danger">Home</a>
+        <a href="/orderlist" class="btn btn-md btn-success ">Orders</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Menu</a>
+        <a href="/dishlist" class="btn btn-md btn-success ">Dishes</a>
         <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
-        {{ end }}
         <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+    {{ else }}
+        <a href="/" class="btn btn-md btn-success ">Home</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Menu</a>
+        <a href="/orderlist" class="btn btn-md btn-success">Orders</a>
+        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+    {{ end }}
+
+
+
+
 </div>
 <p/>
 
-<h2>{{ .Info.Name }} - {{ .Info.UserID }}</h2>
+<h2>{{ .Info.Name }} - {{ .OrderItem.ClientName }} - {{.Info.UserID }}</h2>
 
-<br>Order Number:<br>
-<input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }}" readonly class="btn btn-md btn-primary">
+<br>Order Number - User ID:<br>
+<input type="text" id="orderID" name="orderID" value="{{ .OrderItem.ID }} " readonly class="btn btn-md btn-primary">
 <p/>
 <br>Order Status:<br>
 
@@ -26,7 +34,11 @@
     {{if eq .OrderItem.Status "Ready" }}
     <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-success">
     {{ else }}
-    <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-warning">
+        {{if eq .OrderItem.Status "Completed" }}
+        <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-primary">
+        {{ else }}
+        <input type="text" id="status" name="status" value="{{ .OrderItem.Status }}" readonly class="btn btn-md btn-warning">
+        {{ end }}
     {{ end }}
 {{ end }}
 
@@ -48,7 +60,7 @@
             <td>{{ .PratoName }}</td>
             <td>{{ .Quantidade }}</td>
             <td>{{ .Price }}</td>
-            <td>{{ .Total }}</td>
+            <td type="number" step="0.25">{{ .Total }}</td>
         </tr>
         {{end}}
     </table>
@@ -70,6 +82,7 @@
     {{ if eq .Info.IsAdmin "Yes" }}
         <a href="/ordersettoserving?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-primary">Serving</a>
         <a href="/ordersettoready?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-primary">Set to Ready</a>
+        <a href="/ordersettocompleted?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-primary">Set to Completed</a>
     {{ end }}
     {{if eq .OrderItem.Status "Placed" }}
         <a href="/ordercancel?orderid={{ .OrderItem.ID }}" class="btn btn-md btn-danger">Cancel Order</a>
@@ -83,7 +96,20 @@
     <br> Order time:<br>
     <input type="text" id="orderTime" name="orderTime" value="{{ .OrderItem.Time }}" readonly>
     <p/>
-    
+
+    <p/>
+    <br>Paid Amount:<br>
+    <input type="text" id="paidAmount" name="paidAmount" value="" >
+    <p/>
+    <br>Change:<br>
+    <input type="text" id="troco" name="troco" value="" >
+    <p/>
+
+
+    <button class="btn btn-md btn-danger" onclick="calcularTroco()">Calcular Troco</button>
+    <button class="btn btn-md btn-danger" onclick="printOrder()">Print</button>
+
+
 
 </div>
 

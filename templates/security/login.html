@@ -7,35 +7,36 @@
     <meta id="meta" name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="css/taskman.css" />
-    <link rel="stylesheet" type="text/css" href="css/restaurantec.css" />
+    <link rel="stylesheet" type="text/css" href="css/festajunina.css" />
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,300,700" rel="stylesheet" type="text/css">
-
+    <link rel="icon" href="images/festa-junina.jpg">
 </head>
 
-<body ng-controller="tasksController" onload="danielonload()">
-
+<body ng-controller="tasksController" background="festa-junina.jpg">
+    
     <div id="header" class="navbar navbar-left" id="navbar">
-        <a href="/" class="btn btn-md btn-warning">Main Page</a>
+        <a href="/" class="btn btn-md btn-success">Home</a>
     </div>
-    <myHero>
-        <h2>Login Page</h2>
-    </myHero>
+    <h2>Festa Junina - Login Page</h2>
 
     <form method="POST" action="/login">
-        User ID:
+        Email Address:
         <p/>
-        <input type="text" name="userid" placeholder="userid">
+        <input type="text" name="userid" placeholder="Email Address">
         <p/> Password:
         <p/>
         <input type="password" name="password" placeholder="password">
         <p/>
-        <input type="submit" value="Login">
+        <input type="submit" value="Login" class="btn btn-md btn-success">
         <p/>
     </form>
 
-    <p>If new user, create a new registration instead:</p>
-    <a href="/signup" class="btn btn-md btn-success ">Click Here to Register</a>
+   
+    <p>NEW USERS: Register below.</p>
+    <a href="/signup" class="btn btn-md btn-success">Click Here to Register</a>
+
+    <a href="/instructions" class="btn btn-md btn-success">Instructions</a>
 
     {{ template "messagetemplate" . }}
 

@@ -63,6 +63,7 @@ var routes = Routes{
 	// Route{"errorpage", "GET", "/login", errorpage},
 	// ----------------------------------------------------------- Security
 	Route{"login", "GET", "/login", loginPageV4},
+	Route{"instructions", "GET", "/instructions", instructions},
 	Route{"login", "POST", "/login", loginPageV4},
 	Route{"logout", "GET", "/logout", logoutPage},
 	Route{"signup", "GET", "/signup", signupPage},
@@ -81,24 +82,18 @@ var routes = Routes{
 	Route{"errorpage", "POST", "/errorpage", errorpage},
 	// ----------------------------------------------------------- Order
 	Route{"orderlist", "GET", "/orderlist", orderlist},
+	Route{"orderlist", "POST", "/orderlist", orderlist},
+	Route{"orderlistcompleted", "GET", "/orderlistcompleted", orderlistcompleted},
+	Route{"orderlistcompleted", "POST", "/orderlistcompleted", orderlistcompleted},
+	Route{"orderliststatus", "POST", "/orderliststatus", orderliststatus},
 	Route{"orderadddisplay", "POST", "/orderadddisplay", orderadddisplay},
 	Route{"orderadddisplay", "GET", "/orderadddisplay", orderadddisplay},
 	Route{"orderadd", "POST", "/orderadd", orderadd},
+	Route{"orderclientadd", "POST", "/orderclientadd", orderclientadd},
 	Route{"ordersettoserving", "GET", "/ordersettoserving", ordersettoserving},
 	Route{"ordersettoready", "GET", "/ordersettoready", ordersettoready},
+	Route{"ordersettocompleted", "GET", "/ordersettocompleted", ordersettocompleted},
 	Route{"ordercancel", "GET", "/ordercancel", ordercancel},
 	Route{"orderviewdisplay", "GET", "/orderviewdisplay", orderviewdisplay},
-	// ----------------------------------------------------------- Order
-	Route{"btcmarketslist", "GET", "/btcmarketslist", btcmarketslistV3},
-	Route{"btcmarketshistorylist", "GET", "/btcmarketshistorylist", btclistcoinshistory},
-	Route{"btcmarketshistorylistdate", "GET", "/btcmarketshistorylistdate", btclistcoinshistorydate},
-	Route{"btcrecordtick", "GET", "/btcrecordtick", btcrecordtick},
-	// Route{"orderviewdisplay", "POST", "/orderviewdisplay", orderviewdisplay},
-	Route{"btcpreorderadddisplay", "POST", "/btcpreorderadddisplay", btcpreorderadddisplay},
-	Route{"btcpreorderlist", "GET", "/btcpreorderlist", btcpreorderlist},
-	Route{"btcpreorderadd", "POST", "/btcpreorderadd", btcpreorderadd},
-	// -------------------------------------------------------------
-	Route{"belnorthgradinglist", "GET", "/belnorthgradinglist", gradingList},
-	Route{"competitionllayerlist", "GET", "/competitionllayerlist", competitionPlayerList},
-	Route{"payments", "GET", "/payments", paymentList},
+	// ----------------------------------------------------------- Websockets
 }

@@ -48,7 +48,7 @@ func HomePage(httpwriter http.ResponseWriter, redisclient *redis.Client, credent
 	// Assemble the display structure for html template
 	//
 	items := DisplayTemplate{}
-	items.Info.Name = "Root"
+	items.Info.Name = credentials.UserName
 	items.Info.UserID = credentials.UserID
 	items.Info.Application = credentials.ApplicationID
 	items.Info.IsAdmin = credentials.IsAdmin

@@ -5,10 +5,10 @@
 package disheshandler
 
 import (
+	helper "festajuninaweb/areas/helper"
 	"html/template"
 	"net/http"
 	dishes "restauranteapi/models"
-	helper "restauranteweb/areas/helper"
 
 	"github.com/go-redis/redis"
 )
@@ -24,6 +24,7 @@ type ControllerInfo struct {
 	UserName      string
 	ApplicationID string //
 	IsAdmin       string //
+	IsAnonymous   string //
 }
 
 // Row is
@@ -43,7 +44,7 @@ var mongodbvar helper.DatabaseX
 
 // List = assemble results of API call to dish list
 //
-func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
+func List(httpwriter http.ResponseWriter, redisclient *redis.Client, credentials helper.Credentials) {
 
 	// create new template
 	t, _ := template.ParseFiles("html/index.html", "templates/listtemplate.html")
@@ -56,7 +57,10 @@ func List(httpwriter http.ResponseWriter, redisclient *redis.Client) {
 	//
 	items := DisplayTemplate{}
 	items.Info.Name = "Dish List"
-	items.Info.UserID = "User"
+	items.Info.UserID = credentials.UserID
+	items.Info.UserName = credentials.UserName
+	items.Info.ApplicationID = credentials.ApplicationID
+	items.Info.IsAdmin = credentials.IsAdmin
 
 	var numberoffields = 8
 
@@ -109,6 +113,7 @@ func ListPictures(httpwriter http.ResponseWriter, redisclient *redis.Client, cre
 	items.Info.UserName = credentials.UserName
 	items.Info.ApplicationID = credentials.ApplicationID
 	items.Info.IsAdmin = credentials.IsAdmin
+	items.Info.IsAnonymous = credentials.IsAnonymous
 
 	var numberoffields = 4
 

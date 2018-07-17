@@ -1,19 +1,16 @@
 {{ define "listtemplate" }}
 
 <div id="header" class="navbar navbar-left" id="navbar">
-    {{ if eq .Info.IsAdmin "Yes" }}
-        <a href="/" class="btn btn-md btn-danger ">Main Page</a>
-        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
-        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
-        <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
-        <a href="/orderadddisplay" class="btn btn-md btn-success ">Place Order</a>
-    {{ else}}
-        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
-        <a href="/dishlistpictures" class="btn btn-md btn-success ">Dishes</a>
-        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
-        <a href="/orderadddisplay" class="btn btn-md btn-success ">Place Order</a>
-    {{ end }}
+    <a href="/" class="btn btn-md btn-danger ">Home</a>
+    <a href="/dishlistpictures" class="btn btn-md btn-success ">Menu</a>
+    <a href="/orderlist" class="btn btn-md btn-success">Orders</a>
+    <a href="/instructions" class="btn btn-md btn-success">Instructions</a>
 
+    {{ if eq .Info.ApplicationID "Restaurante" }}
+        {{ if eq .Info.IsAdmin "Yes" }}
+            <a href="/dishlist" class="btn btn-md btn-success ">Dishes</a>
+        {{ end }}
+    {{end}}
 </div>
 
 <p/>
@@ -44,9 +41,12 @@
         </p>
     </div>
 </form>
-
 <table></table>
 <div id="footer">
-<a href="/logout" class="btn btn-md btn-danger ">Logout: {{ .Info.UserID }}</a> 
+    <div id="header" class="navbar navbar-right" id="navbar">
+        <a href="/login" class="btn btn-md btn-warning ">Login</a> 
+        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
+    </div>
 </div>
+
 {{end}}

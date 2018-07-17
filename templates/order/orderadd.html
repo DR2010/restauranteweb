@@ -1,29 +1,29 @@
 {{define "listtemplate"}}
 
 <div id="header" class="navbar navbar-left" id="navbar">
-    
-    
     {{ if eq .Info.IsAdmin "Yes" }}
-        <a href="/" class="btn btn-md btn-danger">Main Page</a>
-        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
-        <a href="/dishlist" class="btn btn-md btn-success ">Dish list</a>
+        <a href="/" class="btn btn-md btn-danger">Home</a>
+        <a href="/orderlist" class="btn btn-md btn-success ">Orders</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Menu</a>
+        <a href="/dishlist" class="btn btn-md btn-success ">Dishes</a>
         <a href="/showcache" class="btn btn-md btn-success ">Show Cache</a>
-        <a href="/logout" class="btn btn-md btn-danger ">Logout: Admin - {{ .Info.UserID }} </a> 
+        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
     {{ else }}
-        <a href="/" class="btn btn-md btn-warning ">Main Page</a>
-        <a href="/orderlist" class="btn btn-md btn-success ">Order list</a>
-        <a href="/logout" class="btn btn-md btn-warning ">Logout: {{ .Info.UserID }} </a> 
+        <a href="/" class="btn btn-md btn-success ">Home</a>
+        <a href="/dishlistpictures" class="btn btn-md btn-success ">Menu</a>
+        <a href="/orderlist" class="btn btn-md btn-success">Orders</a>
+        <a href="/logout" class="btn btn-md btn-warning ">Logout</a> 
     {{ end }}
 
 
     </div>
 <p/>
 
-<h2>{{ .Info.Name }} - {{ .Info.UserName }}</h2>
+<h2>{{ .Info.Name }} - {{ .Info.UserID }}</h2>
 
-<br>Current User:<br>
+<br>Email - User ID:<br>
 <label for="userID" id="userID" class="btn btn-md btn-success" >{{ .Info.UserID }}</label>
-<br>Name:<br>
+<br>Order Name:<br>
 <input type="text" id="orderClientName" name="orderClientName" value="{{ .Info.UserName }}" onblur="getdatetime()" required>
 <br>Date:<br>
 <input type="date" id="orderDate" name="orderDate" value="" readonly>
@@ -41,7 +41,6 @@
 <br> -->
 
 <h2>Select your options below:</h2>
-<br>Dish:<br>
 <select name="pratoname" id="pratoname">
         {{range .Pratos }}
             <option value={{.Name}}>{{ .Name }} - {{ .Price }}</option>
@@ -68,7 +67,7 @@
 
 <p/>
 <br>Order Number:<br>
-<input type="text" id="orderID" name="orderID" readonly class="btn btn-md btn-primary">
+<input type="text" id="orderID" name="orderID" readonly class="btn btn-md btn-success">
 <p/>
 
 <div style="float:left;" class="table-responsive">
@@ -87,12 +86,16 @@
 
 <table></table>
 
-<button onclick="saveOrder() ">Place Order</button>
+<!-- <button onclick="saveOrder() ">Place Order</button> -->
+<button onclick="saveOrder2() ">Place Order</button>
+
 
 <p/>
 
 <br> Message:<br>
-<input type="text" id="message" name="message" value="">
+<textarea rows="4" cols="50" id="message">
+</textarea>
+
 
 <p/>
 {{range .Pratos }}
